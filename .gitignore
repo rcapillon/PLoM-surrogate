@@ -1,0 +1,5 @@
+# exclude some foldes
+biblio/
+.idea/
+# exclude some files
+*.png
