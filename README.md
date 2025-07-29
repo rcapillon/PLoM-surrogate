@@ -1,2 +1,7 @@
 # PLoM-surrogate
 Tools for constructing a surrogate model for a probabilistic numerical model using Probabilistic Learning on Manifolds
+
+## Bibliography
+[1] C. Soize, R. Ghanem, 
+Probabilistic-learning-based stochastic surrogate model from small incomplete datasets for nonlinear dynamical systems, 
+Computer Methods in Applied Mechanics and Engineering, 2024, https://doi.org/10.1016/j.cma.2023.116498
