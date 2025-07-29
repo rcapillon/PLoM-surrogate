@@ -1,6 +1,7 @@
 # exclude some foldes
 biblio/
 .idea/
+build/
 PLoM_surrogate.egg-info/
 # exclude some files
 *.png
