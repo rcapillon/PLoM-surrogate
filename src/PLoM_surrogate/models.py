@@ -2,7 +2,7 @@ from typing import Union
 import numpy as np
 
 
-def model1(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
+def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
     """
     Simple model generating a scalar time series from 2 control and 2 uncertain parameters.
 
