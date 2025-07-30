@@ -24,6 +24,10 @@ if __name__ == '__main__':
         U = mat_U[:, i]
         rand_Y[i, :] = model_sinc(W, U, t)
 
+    # Covariance matrix estimation
+    # cov_U = np.dot(U_samples, U_samples.T) / (n_U_samples - 1)
+    # print(cov_U)
+
     # U0_gkde = gaussian_kde(U_samples[0, :])
     # U1_gkde = gaussian_kde(U_samples[1, :])
     # x_U0 = np.linspace(-2., 5., 1000)
