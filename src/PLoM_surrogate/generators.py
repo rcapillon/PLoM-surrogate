@@ -25,7 +25,7 @@ def generator_U(n_samples):
     return U
 
 
-def generate_dataset(W, t, n_samples):
+def generate_dataset_sinc(W, t, n_samples):
     U_samples = generator_U(n_samples)
     rand_Y = np.zeros((n_samples, len(t)))
     for i in range(n_samples):
