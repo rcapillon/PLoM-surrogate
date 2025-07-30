@@ -11,7 +11,7 @@ from tqdm import tqdm
 from scipy.stats import gaussian_kde
 from PLoM_surrogate.models import model_sinc
 from PLoM_surrogate.generators import generator_U
-from PLoM_surrogate.data import generate_dataset_sinc
+from PLoM_surrogate.data import generate_data_sinc
 
 
 if __name__ == '__main__':
@@ -20,15 +20,19 @@ if __name__ == '__main__':
     n_Y_samples = 100
     W = np.array([2., 1.])
     mat_U = U_samples[:, :n_Y_samples]
-    t = np.linspace(0., 10 * np.pi, 100)
+    t = np.linspace(0., 10 * np.pi, 50)
     rand_Y = np.zeros((n_Y_samples, len(t)))
     for i in range(n_Y_samples):
         U = mat_U[:, i]
         rand_Y[i, :] = model_sinc(W, U, t)
 
     # Covariance matrix estimation
-    # cov_U = np.dot(U_samples, U_samples.T) / (n_U_samples - 1)
-    # print(cov_U)
+    mean_U = np.mean(U_samples, axis=-1)
+    centered_U_samples = U_samples - np.tile(mean_U[:, np.newaxis], (1, n_U_samples))
+    cov_U = np.dot(centered_U_samples, centered_U_samples.T) / (n_U_samples - 1)
+    print(cov_U)
+
+    # Plot marginal PDFs of U
 
     # U0_gkde = gaussian_kde(U_samples[0, :])
     # U1_gkde = gaussian_kde(U_samples[1, :])
@@ -53,15 +57,19 @@ if __name__ == '__main__':
     # plt.grid()
     # plt.show()
 
-    # _, ax = plt.subplots()
-    # for i in range(n_Y_samples):
-    #     ax.plot(t, rand_Y[i, :], '-b')
-    # ax.set_title('Trajectories of random variable Y')
-    # ax.set_xlabel('t')
-    # ax.set_ylabel('Y')
-    # plt.grid()
-    # plt.show()
+    # Plot random realizations of time series of model's output
 
-    W = np.array([2., 1.])
-    n_samples = 50
-    t = np.linspace(0., 10 * np.pi, 100)
+    _, ax = plt.subplots()
+    for i in range(n_Y_samples):
+        ax.plot(t, rand_Y[i, :], '-b')
+    ax.set_title('Trajectories of random variable Y')
+    ax.set_xlabel('t')
+    ax.set_ylabel('Y')
+    plt.grid()
+    plt.show()
+
+    # Generate a dataset
+
+    # W = np.array([2., 1.])
+    # n_samples = 50
+    # t = np.linspace(0., 10 * np.pi, 100)
