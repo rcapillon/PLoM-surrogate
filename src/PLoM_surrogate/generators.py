@@ -23,15 +23,3 @@ def generator_U(n_samples):
     U[1, :] = u1
 
     return U
-
-
-def generate_dataset_sinc(W, t, n_samples):
-    U_samples = generator_U(n_samples)
-    rand_Y = np.zeros((n_samples, len(t)))
-    for i in range(n_samples):
-        U = U_samples[:, i]
-        rand_Y[i, :] = model_sinc(W, U, t)
-
-    dataset = np.zeros((3, n_samples * t.size))
-
-    return dataset
