@@ -18,11 +18,6 @@ def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
 
     """
 
-    # Notes pour l'instant :
-    # - loi normale centrée réduite pour U[0] ?
-    # - loi beta shiftée (de 2pi ?) pour U[1] ?
-    #   -> ou shiftée de 4 + U[0] pour introduire une dépendance entre les deux variables
-
     if W.ndim != 1 or W.size != 2:
         raise ValueError('W must be a numpy vector with 2 components.')
     if U.ndim != 1 or U.size != 2:
