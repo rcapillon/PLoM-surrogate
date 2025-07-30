@@ -11,9 +11,11 @@ from tqdm import tqdm
 from scipy.stats import gaussian_kde
 from PLoM_surrogate.models import model_sinc
 from PLoM_surrogate.generators import generator_U
+from PLoM_surrogate.data import generate_dataset_sinc
+
 
 if __name__ == '__main__':
-    n_U_samples = 100000
+    n_U_samples = 10000
     U_samples = generator_U(n_U_samples)
     n_Y_samples = 100
     W = np.array([2., 1.])
@@ -51,11 +53,15 @@ if __name__ == '__main__':
     # plt.grid()
     # plt.show()
 
-    _, ax = plt.subplots()
-    for i in range(n_Y_samples):
-        ax.plot(t, rand_Y[i, :], '-b')
-    ax.set_title('Trajectories of random variable Y')
-    ax.set_xlabel('t')
-    ax.set_ylabel('Y')
-    plt.grid()
-    plt.show()
+    # _, ax = plt.subplots()
+    # for i in range(n_Y_samples):
+    #     ax.plot(t, rand_Y[i, :], '-b')
+    # ax.set_title('Trajectories of random variable Y')
+    # ax.set_xlabel('t')
+    # ax.set_ylabel('Y')
+    # plt.grid()
+    # plt.show()
+
+    W = np.array([2., 1.])
+    n_samples = 50
+    t = np.linspace(0., 10 * np.pi, 100)
