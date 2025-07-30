@@ -10,7 +10,7 @@ version = "0.1.0"
 authors = [
     { name = "Rémi Capillon" },
 ]
-description = "Tools for constructing a surrogate model for a probabilistic numerical model using Probabilistic Learning on Manifolds"
+description = "Tools for constructing a surrogate model for a stochastic numerical model using Probabilistic Learning on Manifolds"
 readme = "README.md"
 requires-python = ">=3.12"
 classifiers = [
