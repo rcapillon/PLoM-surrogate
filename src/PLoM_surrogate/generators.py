@@ -14,12 +14,8 @@ def generator_U(n_samples):
     mat_U: 2xn_samples matrix of realizations of random vector U
 
     """
-
-    u0 = truncnorm.rvs(5, 7, loc=2*np.pi, scale=0.5, size=n_samples)
-    print(u0.shape)
-    u1 = beta.rvs(2, 5, size=n_samples) + 5
-    print(u1.shape)
-    print(n_samples)
+    u1 = beta.rvs(2, 5, size=n_samples) + 6
+    u0 = truncnorm.rvs(-2, 2, loc=1, scale=1., size=n_samples) + u1 - 6.
     U = np.zeros((2, n_samples))
     U[0, :] = u0
     U[1, :] = u1
