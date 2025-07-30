@@ -10,7 +10,7 @@ def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
     ----------
     W: 2-dimensional vector of control parameters
     U: 2-dimensional vector of uncertain parameters
-    t: List of Nt time values for which the output is calculated
+    t: List or numpy vector of Nt time values for which the output is calculated
 
     Returns
     -------
