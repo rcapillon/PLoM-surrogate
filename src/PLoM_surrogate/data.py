@@ -111,17 +111,21 @@ class Dataset:
 
         eigvals, eigvects = np.linalg.eig(mat_covar)
 
+        inds_keep = eigvals > 1e-9
+        eigvals = eigvals[inds_keep]
+        eigvects = eigvects[:, inds_keep]
+
         inds_sort_eig = np.flip(np.argsort(eigvals))
         self.vec_eig_X = eigvals[inds_sort_eig]
-        self.vec_eig_X[self.vec_eig_X <= 1e-9] = 0.
         self.mat_phi_X = eigvects[:, inds_sort_eig]
 
-        inds_nonzero = np.argwhere(self.vec_eig_X > 0.).flatten()
-        n_nonzero_eig_X = inds_nonzero.size
-        mat_inv_sqrt_eig_X = np.zeros((self.vec_eig_X.size, self.vec_eig_X.size))
-        mat_inv_sqrt_eig_X[:n_nonzero_eig_X, :n_nonzero_eig_X] = np.diag(1. / np.sqrt(self.vec_eig_X[inds_nonzero]))
+        # inds_nonzero = np.argwhere(self.vec_eig_X > 0.).flatten()
+        # n_nonzero_eig_X = inds_nonzero.size
+        # mat_inv_sqrt_eig_X = np.zeros((self.vec_eig_X.size, self.vec_eig_X.size))
+        # mat_inv_sqrt_eig_X[:n_nonzero_eig_X, :n_nonzero_eig_X] = np.diag(1. / np.sqrt(self.vec_eig_X[inds_nonzero]))
 
-        self.H_data = np.dot(mat_inv_sqrt_eig_X, np.dot(self.mat_phi_X.T, centered_X_data))
+        # self.H_data = np.dot(mat_inv_sqrt_eig_X, np.dot(self.mat_phi_X.T, centered_X_data))
+        self.H_data = np.dot(np.diag(1 / np.sqrt(self.vec_eig_X)), np.dot(self.mat_phi_X.T, centered_X_data))
 
     def recover_X(self, H):
         """

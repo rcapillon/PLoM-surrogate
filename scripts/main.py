@@ -15,6 +15,7 @@ from PLoM_surrogate.data import generate_data_sinc, Dataset
 
 
 if __name__ == '__main__':
+    # Fixing the seed for the random number generators
     np.random.seed(seed=42)
 
     # # Estimation of the covariance matrix of U
@@ -29,7 +30,6 @@ if __name__ == '__main__':
 
     # Generate a dataset, plot trajectories, perform PCA on model outputs, then recover model outputs
     # and plot recovered trajectories
-
     n_Y = 1
     n_samples_U = 20
     t = np.linspace(0., 10 * np.pi, 100)
