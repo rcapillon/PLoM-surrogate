@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import truncnorm, beta
+from scipy.stats import truncnorm, beta, multivariate_normal
 
 from PLoM_surrogate.models import model_sinc
 
@@ -45,3 +45,10 @@ def generator_W(n_samples):
     W[1, :] *= 2
 
     return W
+
+
+def generator_mat_N(nu, m):
+    cov = np.eye(nu)
+    mat_N = multivariate_normal.rvs(mean=np.zeros((nu, )), cov=cov, size=m).transpose()
+
+    return mat_N
