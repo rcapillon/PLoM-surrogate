@@ -100,7 +100,7 @@ class Dataset:
 
     def full_pca_on_X(self):
         """
-        Performs a full-order PCA on the 'X' dataset, where full-order PCA has already been applied to the model outputs
+        Performs a full-order PCA on the 'X' dataset, where PCA has already been applied to the model outputs
         """
         self.H_data = np.zeros((self.dim, self.n_r))
 
