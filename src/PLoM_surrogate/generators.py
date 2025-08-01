@@ -23,3 +23,25 @@ def generator_U(n_samples):
     U[1, :] = u1
 
     return U
+
+
+def generator_W(n_samples):
+    """
+
+    Parameters
+    ----------
+    n_samples: number of desired samples
+
+    Returns
+    -------
+    mat_W: 2xn_samples matrix of realizations of control vector W
+
+    """
+    W = np.random.rand(2, n_samples)
+
+    W[0, :] *= 2
+    W[0, :] += 1
+
+    W[1, :] *= 2
+
+    return W

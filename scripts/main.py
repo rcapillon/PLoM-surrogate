@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from scipy.stats import gaussian_kde
 from PLoM_surrogate.models import model_sinc
-from PLoM_surrogate.generators import generator_U
+# from PLoM_surrogate.generators import generator_U
 from PLoM_surrogate.data import generate_data_sinc, Dataset
 
 
@@ -31,10 +31,9 @@ if __name__ == '__main__':
     # and plot recovered trajectories
 
     n_Y = 1
-    W = np.array([2., 1.])
     n_samples = 50
-    t = np.linspace(0., 50, 200)
-    data = generate_data_sinc(W, t, n_samples)
+    t = np.linspace(0., 10 * np.pi, 100)
+    data = generate_data_sinc(t, n_samples)
     dataset = Dataset(data, n_Y)
 
     n_q = 20

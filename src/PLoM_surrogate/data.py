@@ -1,10 +1,10 @@
 import numpy as np
 
-from PLoM_surrogate.generators import generator_U
+from PLoM_surrogate.generators import generator_U, generator_W
 from PLoM_surrogate.models import model_sinc
 
 
-def generate_data_sinc(W, t, n_samples):
+def generate_data_sinc(t, n_samples):
     """
 
     Parameters
@@ -21,11 +21,13 @@ def generate_data_sinc(W, t, n_samples):
 
     """
     U_samples = generator_U(n_samples)
+    W_samples = generator_W(n_samples)
     data = np.zeros((3, t.size, n_samples))
     for i in range(n_samples):
         U = U_samples[:, i]
+        W = W_samples[:, i]
         data[0, :, i] = model_sinc(W, U, t)
-    data[1:, :, :] = np.tile(W[:, np.newaxis, np.newaxis], (1, t.size, n_samples))
+        data[1:, :, i] = np.tile(W[:, np.newaxis], (1, t.size))
 
     return data
 
@@ -112,9 +114,10 @@ class Dataset:
 
         inds_sort_eig = np.flip(np.argsort(eigvals))
         self.vec_eig_X = eigvals[inds_sort_eig]
+        self.vec_eig_X[self.vec_eig_X <= 1e-9] = 0.
         self.mat_phi_X = eigvects[:, inds_sort_eig]
 
-        inds_nonzero = np.argwhere(self.vec_eig_X >= 1e-9).flatten()
+        inds_nonzero = np.argwhere(self.vec_eig_X > 0.).flatten()
         n_nonzero_eig_X = inds_nonzero.size
         mat_inv_sqrt_eig_X = np.zeros((self.vec_eig_X.size, self.vec_eig_X.size))
         mat_inv_sqrt_eig_X[:n_nonzero_eig_X, :n_nonzero_eig_X] = np.diag(1. / np.sqrt(self.vec_eig_X[inds_nonzero]))
