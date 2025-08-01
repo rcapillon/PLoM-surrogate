@@ -109,12 +109,17 @@ class Dataset:
         mat_covar = np.dot(centered_X_data, centered_X_data.T) / (self.n_r - 1)
 
         eigvals, eigvects = np.linalg.eig(mat_covar)
+
         inds_sort_eig = np.flip(np.argsort(eigvals))
         self.vec_eig_X = eigvals[inds_sort_eig]
         self.mat_phi_X = eigvects[:, inds_sort_eig]
 
-        self.H_data[:self.n_q, :] = np.linalg.solve(np.diag(np.sqrt(self.vec_eig_X)),
-                                                    np.dot(self.mat_phi_X.T, centered_X_data))
+        inds_nonzero = np.argwhere(self.vec_eig_X >= 1e-9).flatten()
+        n_nonzero_eig_X = inds_nonzero.size
+        mat_inv_sqrt_eig_X = np.zeros((self.vec_eig_X.size, self.vec_eig_X.size))
+        mat_inv_sqrt_eig_X[:n_nonzero_eig_X, :n_nonzero_eig_X] = np.diag(1. / np.sqrt(self.vec_eig_X[inds_nonzero]))
+
+        self.H_data = np.dot(mat_inv_sqrt_eig_X, np.dot(self.mat_phi_X.T, centered_X_data))
 
     def recover_X(self, H):
         """
@@ -123,7 +128,5 @@ class Dataset:
         """
         recovered_X = (np.dot(np.dot(self.mat_phi_X, np.diag(np.sqrt(self.vec_eig_X))), H)
                        + np.tile(self.vec_mean_X[:, np.newaxis], (1, H.shape[1])))
-
-        recovered_X = np.dot(self.mat_V_X, H)
 
         return recovered_X

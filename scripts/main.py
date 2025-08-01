@@ -37,12 +37,12 @@ if __name__ == '__main__':
     data = generate_data_sinc(W, t, n_samples)
     dataset = Dataset(data, n_Y)
 
-    n_q = 10
+    n_q = 20
     dataset.pca_on_Y(n_q)
-    recovered_data = dataset.recover_data(dataset.X_data)
-    # dataset.full_pca_on_X()
-    # recovered_X = dataset.recover_X(dataset.H_data)
-    # recovered_data = dataset.recover_data(recovered_X)
+    # recovered_data = dataset.recover_data(dataset.X_data)
+    dataset.full_pca_on_X()
+    recovered_X = dataset.recover_X(dataset.H_data)
+    recovered_data = dataset.recover_data(recovered_X)
 
     _, ax = plt.subplots()
     for i in range(n_samples):
