@@ -2,12 +2,14 @@ import numpy as np
 
 
 def gaussian_kernel(vec1, vec2, eps):
+    """"""
     k = (-1. / (4 * eps)) * np.linalg.norm(vec1 - vec2) ** 2
 
     return k
 
 
 def build_mat_K(mat_eta, eps):
+    """"""
     N = mat_eta.shape[1]
     mat_K = np.zeros((N, N))
     for i in range(N):
@@ -18,6 +20,7 @@ def build_mat_K(mat_eta, eps):
 
 
 def build_mat_b(mat_K):
+    """"""
     N = mat_K.shape[0]
     mat_b = np.zeros((N, N))
     for i in range(N):
@@ -27,6 +30,7 @@ def build_mat_b(mat_K):
 
 
 def build_mat_Ps(mat_b, mat_K):
+    """"""
     inv_sqrt_b = np.linalg.inv(np.sqrt(mat_b))
     mat_Ps = np.dot(inv_sqrt_b, np.dot(mat_K, inv_sqrt_b))
 
@@ -34,13 +38,14 @@ def build_mat_Ps(mat_b, mat_K):
 
 
 def construct_dmaps_basis(mat_eta, eps, m, kappa):
+    """"""
     mat_K = build_mat_K(mat_eta, eps)
     mat_b = build_mat_b(mat_K)
     mat_Ps = build_mat_Ps(mat_b, mat_K)
 
     eigvals, eigvects = np.linalg.eig(mat_Ps)
     inds_sort_eigvals = np.flip(np.argsort(eigvals))
-    sorted_eigvals = S[inds_sort_eigvals]
+    sorted_eigvals = eigvals[inds_sort_eigvals]
     sorted_eigvects = eigvects[:, inds_sort_eigvals]
 
     vec_lambda = sorted_eigvals[:m]
@@ -57,6 +62,7 @@ def construct_dmaps_basis(mat_eta, eps, m, kappa):
 
 
 def build_mat_a(mat_g):
+    """"""
     inv_gTg = np.linalg.inv(np.dot(mat_g.T, mat_g))
     mat_a = np.dot(mat_g, inv_gTg)
 
@@ -64,12 +70,43 @@ def build_mat_a(mat_g):
 
 
 def project_on_dmaps(mat, mat_a):
+    """"""
     projected_mat = np.dot(mat, mat_a)
 
     return projected_mat
 
 
 def reverse_project_from_dmaps(projected_mat, mat_g):
+    """"""
     mat = np.dot(projected_mat, mat_g.T)
 
     return mat
+
+
+def compute_q(u, mat_eta):
+    """"""
+    nu = mat_eta.shape[0]
+    N = mat_eta.shape[1]
+
+    s_nu = np.power(4 / (N * (2 + nu)), 1 / (nu + 4))
+    s_hat_nu = s_nu / (np.sqrt(s_nu ** 2 + ((N - 1) / N)))
+
+    q = np.zeros((nu, ))
+    for i in range(N):
+        q += np.exp(-np.linalg.norm(s_hat_nu * mat_eta[:, i] / s_nu - u) ** 2 / (2 * s_hat_nu ** 2))
+    q /= N
+
+    return q
+
+
+def compute_grad_q(mat_u, mat_eta):
+    """"""
+    nu = mat_eta.shape[0]
+    N = mat_eta.shape[1]
+
+    s_nu = np.power(4 / (N * (2 + nu)), 1 / (nu + 4))
+    s_hat_nu = s_nu / (np.sqrt(s_nu ** 2 + ((N - 1) / N)))
+
+
+def compute_L():
+    """"""

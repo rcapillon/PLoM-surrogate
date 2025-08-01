@@ -13,7 +13,7 @@ def generator_U(n_samples):
 
     Returns
     -------
-    mat_U: 2xn_samples matrix of realizations of random vector U
+    mat_U: 2 x n_samples matrix of realizations of random vector U
 
     """
     u1 = beta.rvs(2, 5, size=n_samples) + 6
@@ -34,7 +34,7 @@ def generator_W(n_samples):
 
     Returns
     -------
-    mat_W: 2xn_samples matrix of realizations of control vector W
+    mat_W: 2 x n_samples matrix of realizations of control vector W
 
     """
     W = np.random.rand(2, n_samples)
@@ -48,7 +48,28 @@ def generator_W(n_samples):
 
 
 def generator_mat_N(nu, m):
+    """
+
+    Parameters
+    ----------
+    nu: number of dimensions of random multivariate centered normal vector with identity covariance matrix
+    m: number of independant samples
+
+    Returns
+    -------
+    mat_N: nu x m matrix whose columns are independant realizations of multivariate centered normal vectors
+    with identity covariance matrix
+
+    """
     cov = np.eye(nu)
     mat_N = multivariate_normal.rvs(mean=np.zeros((nu, )), cov=cov, size=m).transpose()
 
     return mat_N
+
+
+def generator_delta_Wiener(nu, N, delta_r):
+    """"""
+    delta_Wiener = multivariate_normal.rvs(mean=np.zeros((nu * N, )), cov=delta_r * np.eye(nu * N), size=1)
+    mat_delta_Wiener = np.reshape(delta_Wiener, shape=(nu, N))
+
+    return mat_delta_Wiener

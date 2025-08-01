@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from scipy.stats import gaussian_kde
 from PLoM_surrogate.models import model_sinc
-# from PLoM_surrogate.generators import generator_U
+from PLoM_surrogate.generators import generator_U, generator_mat_N, generator_delta_Wiener
 from PLoM_surrogate.data import generate_data_sinc, Dataset
 
 
