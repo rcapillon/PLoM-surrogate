@@ -11,65 +11,53 @@ from tqdm import tqdm
 from scipy.stats import gaussian_kde
 from PLoM_surrogate.models import model_sinc
 from PLoM_surrogate.generators import generator_U
-from PLoM_surrogate.data import generate_data_sinc
+from PLoM_surrogate.data import generate_data_sinc, Dataset
 
 
 if __name__ == '__main__':
-    n_U_samples = 10000
-    U_samples = generator_U(n_U_samples)
-    n_Y_samples = 100
+    np.random.seed(seed=42)
+
+    # # Estimation of the covariance matrix of U
+    #
+    # n_U_samples = 10000
+    # U_samples = generator_U(n_U_samples)
+    #
+    # mean_U = np.mean(U_samples, axis=-1)
+    # centered_U_samples = U_samples - np.tile(mean_U[:, np.newaxis], (1, n_U_samples))
+    # cov_U = np.dot(centered_U_samples, centered_U_samples.T) / (n_U_samples - 1)
+    # print(cov_U)
+
+    # Generate a dataset, plot trajectories, perform PCA on model outputs, then recover model outputs
+    # and plot recovered trajectories
+
+    n_Y = 1
     W = np.array([2., 1.])
-    mat_U = U_samples[:, :n_Y_samples]
-    t = np.linspace(0., 10 * np.pi, 50)
-    rand_Y = np.zeros((n_Y_samples, len(t)))
-    for i in range(n_Y_samples):
-        U = mat_U[:, i]
-        rand_Y[i, :] = model_sinc(W, U, t)
+    n_samples = 50
+    t = np.linspace(0., 50, 200)
+    data = generate_data_sinc(W, t, n_samples)
+    dataset = Dataset(data, n_Y)
 
-    # Covariance matrix estimation
-    mean_U = np.mean(U_samples, axis=-1)
-    centered_U_samples = U_samples - np.tile(mean_U[:, np.newaxis], (1, n_U_samples))
-    cov_U = np.dot(centered_U_samples, centered_U_samples.T) / (n_U_samples - 1)
-    print(cov_U)
-
-    # Plot marginal PDFs of U
-
-    # U0_gkde = gaussian_kde(U_samples[0, :])
-    # U1_gkde = gaussian_kde(U_samples[1, :])
-    # x_U0 = np.linspace(-2., 5., 1000)
-    # x_U1 = np.linspace(5., 8., 1000)
-    # pdf_U0 = U0_gkde.pdf(x_U0)
-    # pdf_U1 = U1_gkde.pdf(x_U1)
-    #
-    # _, ax = plt.subplots()
-    # ax.plot(x_U0, pdf_U0, '-b', label='U_0 pdf')
-    # ax.set_title('Marginal PDF of U_0')
-    # ax.set_xlabel('x')
-    # ax.set_ylabel('p(x)')
-    # plt.grid()
-    # plt.show()
-    #
-    # _, ax = plt.subplots()
-    # ax.plot(x_U1, pdf_U1, '-r', label='U_1 pdf')
-    # ax.set_title('Marginal PDF of U_1')
-    # ax.set_xlabel('x')
-    # ax.set_ylabel('p(x)')
-    # plt.grid()
-    # plt.show()
-
-    # Plot random realizations of time series of model's output
+    n_q = 10
+    dataset.pca_on_Y(n_q)
+    recovered_data = dataset.recover_data(dataset.X_data)
+    # dataset.full_pca_on_X()
+    # recovered_X = dataset.recover_X(dataset.H_data)
+    # recovered_data = dataset.recover_data(recovered_X)
 
     _, ax = plt.subplots()
-    for i in range(n_Y_samples):
-        ax.plot(t, rand_Y[i, :], '-b')
+    for i in range(n_samples):
+        ax.plot(t, data[0, :, i], '-b')
     ax.set_title('Trajectories of random variable Y')
     ax.set_xlabel('t')
     ax.set_ylabel('Y')
     plt.grid()
     plt.show()
 
-    # Generate a dataset
-
-    # W = np.array([2., 1.])
-    # n_samples = 50
-    # t = np.linspace(0., 10 * np.pi, 100)
+    _, ax = plt.subplots()
+    for i in range(n_samples):
+        ax.plot(t, recovered_data[0, :, i], '-b')
+    ax.set_title('Trajectories of recovered random variable Y')
+    ax.set_xlabel('t')
+    ax.set_ylabel('Y')
+    plt.grid()
+    plt.show()
