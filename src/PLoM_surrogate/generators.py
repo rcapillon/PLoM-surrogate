@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import truncnorm, beta, multivariate_normal
+from scipy.stats import truncnorm, beta, multivariate_normal, Covariance
 from tqdm import tqdm
 
 from PLoM_surrogate.models import model_sinc
@@ -83,7 +83,8 @@ def generator_Delta_Wiener(nu, N, delta_r):
     mat_Delta_Wiener: nu x N matrix of increment for the Wiener process
 
     """
-    Delta_Wiener = multivariate_normal.rvs(mean=np.zeros((nu * N, )), cov=delta_r * np.eye(nu * N), size=1)
+    cov = Covariance.from_diagonal(np.array([delta_r] * (nu * N)))
+    Delta_Wiener = multivariate_normal.rvs(mean=np.zeros((nu * N, )), cov=cov, size=1)
     mat_Delta_Wiener = np.reshape(Delta_Wiener, shape=(nu, N))
 
     return mat_Delta_Wiener
@@ -123,7 +124,6 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
     mat_eta_MC = np.zeros((nu, N * n_MC))
 
     for i in tqdm(range(n_MC)):
-        mat_eta_i = None
         mat_Z_proj_next = None
         for j in range(M_0):
             mat_Z_proj_prev_half = mat_Z_proj_prev + delta_r * mat_Y_proj_prev / 2

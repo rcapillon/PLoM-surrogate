@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from multiprocessing import Pool
 
 from PLoM_surrogate.models import model_sinc
 from PLoM_surrogate.generators import generator_U, generator_ISDE
@@ -53,23 +54,23 @@ if __name__ == '__main__':
     recovered_X = dataset.recover_X(dataset.H_data)
     recovered_data = dataset.recover_data(recovered_X)
 
-    _, ax = plt.subplots()
-    for i in range(n_samples_tot):
-        ax.plot(t, data[0, :, i], '-b')
-    ax.set_title('Trajectories of random variable Y')
-    ax.set_xlabel('t')
-    ax.set_ylabel('Y')
-    plt.grid()
-    plt.show()
-
-    _, ax = plt.subplots()
-    for i in range(n_samples_tot):
-        ax.plot(t, recovered_data[0, :, i], '-b')
-    ax.set_title('Trajectories of recovered random variable Y')
-    ax.set_xlabel('t')
-    ax.set_ylabel('Y')
-    plt.grid()
-    plt.show()
+    # _, ax = plt.subplots()
+    # for i in range(n_samples_tot):
+    #     ax.plot(t, data[0, :, i], '-b')
+    # ax.set_title('Trajectories of random variable Y')
+    # ax.set_xlabel('t')
+    # ax.set_ylabel('Y')
+    # plt.grid()
+    # plt.show()
+    #
+    # _, ax = plt.subplots()
+    # for i in range(n_samples_tot):
+    #     ax.plot(t, recovered_data[0, :, i], '-b')
+    # ax.set_title('Trajectories of recovered random variable Y')
+    # ax.set_xlabel('t')
+    # ax.set_ylabel('Y')
+    # plt.grid()
+    # plt.show()
 
     # Generate a large number of additional realizations from an original dataset
     # using diffusion maps basis and the ISDE generator
@@ -80,19 +81,29 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 200
-    n_MC = 500
+    n_MC = 100
 
     eps = 3.
-    m = 10
+    m = 30
     kappa = 1
     mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa)
     mat_a = build_mat_a(mat_g)
 
-    data_MCMC = generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC)
+    # parallel processing
+    n_cpu = 4
+    pool = Pool(n_cpu)
+
+    total_data_MCMC = ()
+    inputs = [(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC)] * 6
+
+    for data_MCMC in pool.starmap(generator_ISDE, inputs):
+        total_data_MCMC += data_MCMC
+
+    result_data_MCMC = np.concatenate(total_data_MCMC, axis=-1)
 
     _, ax = plt.subplots()
-    for i in range(data_MCMC.shape[-1]):
-        ax.plot(t, data_MCMC[0, :, i], '-r')
+    for i in range(n_samples_tot):
+        ax.plot(t, result_data_MCMC[0, :, ], '-r')
     ax.set_title('Trajectories of additional realizations of Y')
     ax.set_xlabel('t')
     ax.set_ylabel('Y')
