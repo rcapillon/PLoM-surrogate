@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import truncnorm, beta, multivariate_normal
+from tqdm import tqdm
 
 from PLoM_surrogate.models import model_sinc
 from PLoM_surrogate.dmaps import compute_L
@@ -68,48 +69,61 @@ def generator_mat_N(nu, m):
     return mat_N
 
 
-def generator_delta_Wiener(nu, N, delta_r):
-    """"""
-    delta_Wiener = multivariate_normal.rvs(mean=np.zeros((nu * N, )), cov=delta_r * np.eye(nu * N), size=1)
-    mat_delta_Wiener = np.reshape(delta_Wiener, shape=(nu, N))
+def generator_Delta_Wiener(nu, N, delta_r):
+    """
 
-    return mat_delta_Wiener
+    Parameters
+    ----------
+    nu: number of rows in the increment matrix for the Wiener process
+    N: number of columns in the increment matrix for the Wiener process
+    delta_r: time-step increment in the ISDE generator
+
+    Returns
+    -------
+    mat_Delta_Wiener: nu x N matrix of increment for the Wiener process
+
+    """
+    Delta_Wiener = multivariate_normal.rvs(mean=np.zeros((nu * N, )), cov=delta_r * np.eye(nu * N), size=1)
+    mat_Delta_Wiener = np.reshape(Delta_Wiener, shape=(nu, N))
+
+    return mat_Delta_Wiener
 
 
-def generator_ISDE(mat_eta, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
+def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
     """
     Generator for additional realizations of a vector random variable from initial sample matrix mat_eta,
     using the reduced diffusion maps basis
 
     Parameters
     ----------
-    mat_eta: nu x N matrix of N realizations of vector random variable concentrated on a manifold
+    dataset: dataset containing the training dataset with PCA applied on outputs and then globally
     mat_a: matrix used to project on the diffusion maps basis
     mat_g: matrix used to revert the projection onto the diffusion maps basis
     delta_r: time-step increment in the ISDE generator
     f_0: damping parameter for the ISDE generator
     M_0: number of burned realizations from the ISDE generator to ensure independent realizations as output
-    n_MC: number of additional matrices of realizations of mat_eta concentrated on the same manifold
+    n_MC: number of additional matrices of realizations concentrated on the same manifold as the training dataset
 
     Returns
     -------
+    data_MCMC: additional independent realizations concentrated on the same manifold as the training dataset
 
     """
-    nu = mat_eta.shape[0]
-    N = mat_eta.shape[1]
+    nu = dataset.H_data.shape[0]
+    N = dataset.H_data.shape[1]
     m = mat_g.shape[1]
 
     b = f_0 * delta_r / 4
 
     mat_N = generator_mat_N(nu, N)
 
-    mat_delta_Wiener_prev = generator_delta_Wiener(nu, N, delta_r)
-    mat_Z_proj_prev = np.dot(mat_eta, mat_a)
+    mat_delta_Wiener_prev = generator_Delta_Wiener(nu, N, delta_r)
+    mat_Z_proj_prev = np.dot(dataset.H_data, mat_a)
     mat_Y_proj_prev = np.dot(mat_N, mat_a)
 
     mat_Z_proj_MC = np.zeros((nu, m * n_MC))
 
-    for i in range(n_MC):
+    for i in tqdm(range(n_MC)):
         mat_Z_proj_next = None
         for j in range(M_0):
             mat_Z_proj_prev_half = mat_Z_proj_prev + delta_r * mat_Y_proj_prev / 2
@@ -123,5 +137,7 @@ def generator_ISDE(mat_eta, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
         mat_Z_proj_MC[:, (i * m):((i + 1) * m)] = mat_Z_proj_next
 
     mat_eta_MC = np.dot(mat_Z_proj_MC, mat_g.T)
+    X_MCMC = dataset.recover_X(mat_eta_MC)
+    data_MCMC = dataset.recover_data(X_MCMC)
 
-    return 0
+    return data_MCMC

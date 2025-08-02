@@ -10,23 +10,14 @@ from tqdm import tqdm
 
 from scipy.stats import gaussian_kde
 from PLoM_surrogate.models import model_sinc
-from PLoM_surrogate.generators import generator_U, generator_mat_N, generator_delta_Wiener
+from PLoM_surrogate.generators import generator_U, generator_ISDE
 from PLoM_surrogate.data import generate_data_sinc, Dataset
+from PLoM_surrogate.dmaps import construct_dmaps_basis, build_mat_a
 
 
 if __name__ == '__main__':
     # Fixing the seed for the random number generators
     np.random.seed(seed=42)
-
-    # # Estimation of the covariance matrix of U
-    #
-    # n_U_samples = 10000
-    # U_samples = generator_U(n_U_samples)
-    #
-    # mean_U = np.mean(U_samples, axis=-1)
-    # centered_U_samples = U_samples - np.tile(mean_U[:, np.newaxis], (1, n_U_samples))
-    # cov_U = np.dot(centered_U_samples, centered_U_samples.T) / (n_U_samples - 1)
-    # print(cov_U)
 
     # Generate a dataset, plot trajectories, perform PCA on model outputs, then recover model outputs
     # and plot recovered trajectories
@@ -57,7 +48,6 @@ if __name__ == '__main__':
 
     n_q = 20
     dataset.pca_on_Y(n_q)
-    # recovered_data = dataset.recover_data(dataset.X_data)
     dataset.full_pca_on_X()
     recovered_X = dataset.recover_X(dataset.H_data)
     recovered_data = dataset.recover_data(recovered_X)
@@ -79,3 +69,29 @@ if __name__ == '__main__':
     ax.set_ylabel('Y')
     plt.grid()
     plt.show()
+
+    ####
+
+    # Generate a large number of additional realizations from an original dataset
+    # using diffusion maps basis and the ISDE generator
+
+    s_nu = np.power(4 / (n_samples_tot * (2 + dataset.H_data.shape[0])), 1 / (dataset.H_data.shape[0] + 4))
+    s_hat_nu = s_nu / (np.sqrt(s_nu ** 2 + ((n_samples_tot - 1) / n_samples_tot)))
+    Fac = 20
+    delta_r = 2 * np.pi * s_hat_nu / Fac
+    f_0 = 1.5
+    M_0 = 200
+    n_MC = 200
+
+    # print('inferior bound for M_0:')
+    # print(2 * np.log(100) * Fac / (np.pi * f_0 * s_hat_nu))
+
+    eps = 3.
+    m = 10
+    kappa = 1
+    mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa)
+    mat_a = build_mat_a(mat_g)
+
+    data_MCMC = generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC)
+
+    print(data_MCMC.shape)
