@@ -81,10 +81,7 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 200
-    n_MC = 10
-
-    # print('inferior bound for M_0:')
-    # print(2 * np.log(100) * Fac / (np.pi * f_0 * s_hat_nu))
+    n_MC = 3
 
     eps = 3.
     m = 2
@@ -95,3 +92,12 @@ if __name__ == '__main__':
     data_MCMC = generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC)
 
     print(data_MCMC.shape)
+
+    _, ax = plt.subplots()
+    for i in range(n_samples_tot):
+        ax.plot(t, data_MCMC[0, :, i], '-r')
+    ax.set_title('Trajectories of additional realizations of Y')
+    ax.set_xlabel('t')
+    ax.set_ylabel('Y')
+    plt.grid()
+    plt.show()

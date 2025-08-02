@@ -111,7 +111,6 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
     """
     nu = dataset.H_data.shape[0]
     N = dataset.H_data.shape[1]
-    m = mat_g.shape[1]
 
     b = f_0 * delta_r / 4
 
@@ -121,9 +120,10 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
     mat_Z_proj_prev = np.dot(dataset.H_data, mat_a)
     mat_Y_proj_prev = np.dot(mat_N, mat_a)
 
-    mat_Z_proj_MC = np.zeros((nu, m * n_MC))
+    mat_eta_MC = np.zeros((nu, N * n_MC))
 
     for i in tqdm(range(n_MC)):
+        mat_eta_i = None
         mat_Z_proj_next = None
         for j in range(M_0):
             mat_Z_proj_prev_half = mat_Z_proj_prev + delta_r * mat_Y_proj_prev / 2
@@ -139,9 +139,9 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
             mat_Delta_Wiener_prev = generator_Delta_Wiener(nu, N, delta_r)
             mat_Delta_Wiener_proj_prev = np.dot(mat_Delta_Wiener_prev, mat_a)
 
-        mat_Z_proj_MC[:, (i * m):((i + 1) * m)] = mat_Z_proj_next
+        mat_eta_i = np.dot(mat_Z_proj_next, mat_g.T)
+        mat_eta_MC[:, (i * N):((i + 1) * N)] = mat_eta_i
 
-    mat_eta_MC = np.dot(mat_Z_proj_MC, mat_g.T)
     X_MCMC = dataset.recover_X(mat_eta_MC)
     data_MCMC = dataset.recover_data(X_MCMC)
 
