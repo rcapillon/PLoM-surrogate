@@ -22,9 +22,9 @@ if __name__ == '__main__':
     # Generate a dataset, plot trajectories, perform PCA on model outputs, then recover model outputs
     # and plot recovered trajectories
     n_Y = 1
-    n_samples_U = 20
+    n_samples_U = 10
     t = np.linspace(0., 10 * np.pi, 100)
-    n_W = 5
+    n_W = 3
     n_W_tot = n_W ** 2
     n_samples_tot = n_samples_U * n_W_tot
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         data[:, :, (i * n_samples_U):((i + 1) * n_samples_U)] = data_i
     dataset = Dataset(data, n_Y)
 
-    n_q = 20
+    n_q = 5
     dataset.pca_on_Y(n_q)
     dataset.full_pca_on_X()
     recovered_X = dataset.recover_X(dataset.H_data)
@@ -81,13 +81,13 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 200
-    n_MC = 200
+    n_MC = 10
 
     # print('inferior bound for M_0:')
     # print(2 * np.log(100) * Fac / (np.pi * f_0 * s_hat_nu))
 
     eps = 3.
-    m = 10
+    m = 2
     kappa = 1
     mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa)
     mat_a = build_mat_a(mat_g)

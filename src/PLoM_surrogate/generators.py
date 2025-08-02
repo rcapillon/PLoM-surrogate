@@ -116,8 +116,8 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
     b = f_0 * delta_r / 4
 
     mat_N = generator_mat_N(nu, N)
-
-    mat_delta_Wiener_prev = generator_Delta_Wiener(nu, N, delta_r)
+    mat_Delta_Wiener_prev = generator_Delta_Wiener(nu, N, delta_r)
+    mat_Delta_Wiener_proj_prev = np.dot(mat_Delta_Wiener_prev, mat_a)
     mat_Z_proj_prev = np.dot(dataset.H_data, mat_a)
     mat_Y_proj_prev = np.dot(mat_N, mat_a)
 
@@ -127,12 +127,17 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
         mat_Z_proj_next = None
         for j in range(M_0):
             mat_Z_proj_prev_half = mat_Z_proj_prev + delta_r * mat_Y_proj_prev / 2
-            mat_L_i_half = compute_L(np.dot(mat_Z_proj_prev_half, mat_g.T), mat_eta)
+            mat_L_i_half = compute_L(np.dot(mat_Z_proj_prev_half, mat_g.T), dataset.H_data)
             mat_L_proj_i_half = np.dot(mat_L_i_half, mat_a)
             mat_Y_proj_next = (((1 - b) / (1 + b)) * mat_Y_proj_prev
                                + (delta_r / (1 + b)) * mat_L_proj_i_half
-                               + (np.sqrt(f_0) / (1 + b)) * mat_delta_Wiener_prev)
+                               + (np.sqrt(f_0) / (1 + b)) * mat_Delta_Wiener_proj_prev)
             mat_Z_proj_next = mat_Z_proj_prev_half + delta_r * mat_Y_proj_next / 2
+
+            mat_Z_proj_prev = mat_Z_proj_next
+            mat_Y_proj_prev = mat_Y_proj_next
+            mat_Delta_Wiener_prev = generator_Delta_Wiener(nu, N, delta_r)
+            mat_Delta_Wiener_proj_prev = np.dot(mat_Delta_Wiener_prev, mat_a)
 
         mat_Z_proj_MC[:, (i * m):((i + 1) * m)] = mat_Z_proj_next
 

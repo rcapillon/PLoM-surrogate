@@ -16,7 +16,7 @@ def gaussian_kernel(vec1, vec2, eps):
     k: scalar kernel value for the given arguments
 
     """
-    k = (-1. / (4 * eps)) * np.linalg.norm(vec1 - vec2) ** 2
+    k = np.exp((-1. / (4 * eps)) * np.linalg.norm(vec1 - vec2) ** 2)
 
     return k
 
@@ -238,6 +238,6 @@ def compute_L(mat_u, mat_eta):
         u = mat_u[:, i]
         q = compute_q(u, mat_eta)
         grad_q = compute_grad_q(u, mat_eta)
-        mat_L[i, :] = grad_q / q
+        mat_L[:, i] = grad_q / q
 
     return mat_L
