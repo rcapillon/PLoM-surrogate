@@ -2,6 +2,7 @@ import numpy as np
 
 from PLoM_surrogate.generators import generator_U
 from PLoM_surrogate.models import model_sinc
+from numpy.ma.core import zeros_like
 
 
 def generate_data_sinc(W, t, n_samples):
@@ -44,6 +45,9 @@ class Dataset:
         self.n_t = data.shape[1]
         self.n_r = data.shape[2]
 
+        self.min_data = np.zeros((self.dim, self.n_t))
+        self.max_data = np.zeros((self.dim, self.n_t))
+
         self.n_q = None
 
         self.vec_mean_Y = None
@@ -56,21 +60,43 @@ class Dataset:
         self.mat_phi_X = None
         self.H_data = None
 
+    def scale_data_wrt_realizations(self):
+        scaled_data = np.zeros((self.dim, self.n_t, self.n_r))
+        for i in range(self.dim):
+            for j in range(self.n_t):
+                self.min_data[i, j] = np.amin(self.data[i, j, :])
+                self.max_data[i, j] = np.amax(self.data[i, j, :])
+                scaled_data[i, j, :] = (1e-10 + (self.data[i, j, :] - self.min_data[i, j])
+                                        / (self.max_data[i,j] - self.min_data[i, j]))
+
+        return scaled_data
+
+    def unscale_data_wrt_realizations(self, scaled_data):
+        unscaled_data = np.zeros((self.dim, self.n_t, scaled_data.shape[2]))
+        for i in range(self.dim):
+            for j in range(self.n_t):
+                unscaled_data[i, j, :] = ((scaled_data[i, j, :] - 1e-10) * (self.max_data[i, j] - self.min_data[i, j])
+                                          + self.min_data[i, j])
+
+        return unscaled_data
+
     def pca_on_Y(self, n_q):
         """
         Performs a PCA on the model outputs' realizations of time-series
         """
         self.n_q = n_q
 
+        scaled_data = self.scale_data_wrt_realizations()
+
         reshaped_Y_data = np.zeros((self.n_Y * self.n_t, self.n_r))
         for i in range(self.n_Y):
-            reshaped_Y_data[(i * self.n_t):(i * self.n_t + self.n_t), :] = self.data[i, :, :]
+            reshaped_Y_data[(i * self.n_t):(i * self.n_t + self.n_t), :] = scaled_data[i, :, :]
 
         self.vec_mean_Y = np.mean(reshaped_Y_data, axis=-1)
         centered_Y_data = reshaped_Y_data - np.tile(self.vec_mean_Y[:, np.newaxis], (1, self.n_r))
 
         self.X_data = np.zeros((n_q + self.dim - self.n_Y, self.n_r))
-        self.X_data[n_q:, :] = self.data[self.n_Y:, 0, :]
+        self.X_data[n_q:, :] = scaled_data[self.n_Y:, 0, :]
 
         b, S, _ = np.linalg.svd(centered_Y_data, full_matrices=False)
         inds_sort_sv = np.flip(np.argsort(S))
@@ -96,7 +122,9 @@ class Dataset:
         for i in range(self.n_Y):
             recovered_data[i, :, :] = recovered_reshaped_data[(i + i * self.n_t):(i + (i + 1) * self.n_t), :]
 
-        return recovered_data
+        recovered_unscaled_data = self.unscale_data_wrt_realizations(recovered_data)
+
+        return recovered_unscaled_data
 
     def full_pca_on_X(self):
         """
