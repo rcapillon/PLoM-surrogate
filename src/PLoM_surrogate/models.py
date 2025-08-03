@@ -34,14 +34,13 @@ def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
     return Y
 
 
-def integrate_joint_pdf(joint_gkde, n_Y, Y_mins, Y_maxs, W, n_points):
+def integrate_joint_pdf(joint_gkde, Y_mins, Y_maxs, W, n_points):
     """
     Integrates the joint pdf p_{Y, W}(y, w) with respect to y.
 
     Parameters
     ----------
     joint_gkde: scipy gaussian_kde object constructed using a dataset
-    n_Y: number of components in random vector Y
     Y_mins: lower bounds of Y used for integration
     Y_maxs: upper bounds of Y used for integration
     W: vector of desired control parameters
