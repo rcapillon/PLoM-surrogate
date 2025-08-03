@@ -54,23 +54,23 @@ if __name__ == '__main__':
     recovered_X = dataset.recover_X(dataset.H_data)
     recovered_data = dataset.recover_data(recovered_X)
 
-    # _, ax = plt.subplots()
-    # for i in range(n_samples_tot):
-    #     ax.plot(t, data[0, :, i], '-b')
-    # ax.set_title('Trajectories of random variable Y')
-    # ax.set_xlabel('t')
-    # ax.set_ylabel('Y')
-    # plt.grid()
-    # plt.show()
-    #
-    # _, ax = plt.subplots()
-    # for i in range(n_samples_tot):
-    #     ax.plot(t, recovered_data[0, :, i], '-b')
-    # ax.set_title('Trajectories of recovered random variable Y')
-    # ax.set_xlabel('t')
-    # ax.set_ylabel('Y')
-    # plt.grid()
-    # plt.show()
+    _, ax = plt.subplots()
+    for i in range(n_samples_tot):
+        ax.plot(t, data[0, :, i], '-b')
+    ax.set_title('Trajectories of random variable Y')
+    ax.set_xlabel('t')
+    ax.set_ylabel('Y')
+    plt.grid()
+    plt.show()
+
+    _, ax = plt.subplots()
+    for i in range(n_samples_tot):
+        ax.plot(t, recovered_data[0, :, i], '-b')
+    ax.set_title('Trajectories of recovered random variable Y')
+    ax.set_xlabel('t')
+    ax.set_ylabel('Y')
+    plt.grid()
+    plt.show()
 
     # Generate a large number of additional realizations from an original dataset
     # using diffusion maps basis and the ISDE generator
@@ -84,26 +84,26 @@ if __name__ == '__main__':
     n_MC = 100
 
     eps = 3.
-    m = 30
+    m = 10
     kappa = 1
     mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa)
     mat_a = build_mat_a(mat_g)
 
     # parallel processing
-    n_cpu = 4
-    pool = Pool(n_cpu)
+    n_cpu = 6
+    n_jobs_per_cpu = 1
+    pool = Pool(processes=n_cpu)
 
-    total_data_MCMC = ()
-    inputs = [(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC)] * 6
+    total_data_MCMC = np.empty((n_Y + W.shape[0], t.size, 0))
+    progress_bar = True
+    inputs = [(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar)] * n_cpu * n_jobs_per_cpu
 
     for data_MCMC in pool.starmap(generator_ISDE, inputs):
-        total_data_MCMC += data_MCMC
-
-    result_data_MCMC = np.concatenate(total_data_MCMC, axis=-1)
+        total_data_MCMC = np.concatenate((total_data_MCMC, data_MCMC), axis=-1)
 
     _, ax = plt.subplots()
     for i in range(n_samples_tot):
-        ax.plot(t, result_data_MCMC[0, :, ], '-r')
+        ax.plot(t, total_data_MCMC[0, :, i], '-r')
     ax.set_title('Trajectories of additional realizations of Y')
     ax.set_xlabel('t')
     ax.set_ylabel('Y')

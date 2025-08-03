@@ -90,7 +90,7 @@ def generator_Delta_Wiener(nu, N, delta_r):
     return mat_Delta_Wiener
 
 
-def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
+def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=True):
     """
     Generator for additional realizations of a vector random variable from initial sample matrix mat_eta,
     using the reduced diffusion maps basis
@@ -123,7 +123,7 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC):
 
     mat_eta_MC = np.zeros((nu, N * n_MC))
 
-    for i in tqdm(range(n_MC)):
+    for i in tqdm(range(n_MC), disable=not progress_bar):
         mat_Z_proj_next = None
         for j in range(M_0):
             mat_Z_proj_prev_half = mat_Z_proj_prev + delta_r * mat_Y_proj_prev / 2
