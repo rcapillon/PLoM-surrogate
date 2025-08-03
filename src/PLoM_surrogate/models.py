@@ -83,6 +83,6 @@ class Surrogate:
 
     def sample_surrogate(self, n_samples):
         """"""
-        samples = np.zeros((n_samples, ))
+        samples = self.surrogate_gkde.resample(n_samples)
 
         return samples
