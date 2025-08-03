@@ -54,6 +54,11 @@ def integrate_joint_pdf(joint_gkde, Y_mins, Y_maxs, W, n_points):
 
 
 class Surrogate:
+    """
+    Surrogate model for a probabilistic model parametrized by control parameters. Can be used to generate samples,
+    or estimate lower and upper confidence bounds, for a given value of time (or pseudo-time e.g. frequency)
+    and for given values of the control parameters.
+    """
     def __init__(self, dataset):
         self.dataset = dataset
 
