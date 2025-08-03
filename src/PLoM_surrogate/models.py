@@ -34,16 +34,16 @@ def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
     return Y
 
 
-def integrate_joint_pdf(joint_gkde, n_Y, y_min, y_max, W, n_points):
+def integrate_joint_pdf(joint_gkde, n_Y, Y_mins, Y_maxs, W, n_points):
     """
-    Integrates the joint pdf p_{Y, W}(y, w) with respect to y, using the trapezoidal integration rule.
+    Integrates the joint pdf p_{Y, W}(y, w) with respect to y.
 
     Parameters
     ----------
     joint_gkde: scipy gaussian_kde object constructed using a dataset
     n_Y: number of components in random vector Y
-    y_min: lower bound of y used for integration
-    y_max: upper bound of y used for integration
+    Y_mins: lower bounds of Y used for integration
+    Y_maxs: upper bounds of Y used for integration
     W: vector of desired control parameters
     n_points: number of points used for the integration
 
@@ -80,3 +80,9 @@ class Surrogate:
 
     def compute_confidence_bounds(self, p_confidence=0.95):
         """"""
+
+    def sample_surrogate(self, n_samples):
+        """"""
+        samples = np.zeros((n_samples, ))
+
+        return samples
