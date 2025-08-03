@@ -24,9 +24,9 @@ if __name__ == '__main__':
     # Generate a dataset, plot trajectories, perform PCA on model outputs, then recover model outputs
     # and plot recovered trajectories
     n_Y = 1
-    n_samples_U = 10
+    n_samples_U = 5
     t = np.linspace(0., 10 * np.pi, 40)
-    n_W = 5
+    n_W = 3
     n_W_tot = n_W ** 2
     n_samples_tot = n_samples_U * n_W_tot
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 200
-    n_MC = 100
+    n_MC = 1000
 
     eps = 3.
     m = 10
