@@ -32,3 +32,51 @@ def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
     Y = W[0] * np.sinc((2 * arr_t + U[0]) / U[1]) + W[1]
 
     return Y
+
+
+def integrate_joint_pdf(joint_gkde, n_Y, y_min, y_max, W, n_points):
+    """
+    Integrates the joint pdf p_{Y, W}(y, w) with respect to y, using the trapezoidal integration rule.
+
+    Parameters
+    ----------
+    joint_gkde: scipy gaussian_kde object constructed using a dataset
+    n_Y: number of components in random vector Y
+    y_min: lower bound of y used for integration
+    y_max: upper bound of y used for integration
+    W: vector of desired control parameters
+    n_points: number of points used for the integration
+
+    Returns
+    -------
+    value: result of the integration with respect to y, given control parameters W
+
+    """
+
+
+class Surrogate:
+    def __init__(self, dataset):
+        self.dataset = dataset
+
+        self.t = None
+        self.joint_gkde = None
+        self.W = None
+        self.conditional_gkde = None
+
+        self.surrogate_gkde = None
+        self.lower_confidence_bound = None
+        self.upper_confidence_bound = None
+
+    def compute_joint_gkde(self, t):
+        """"""
+        self.t = t
+
+    def compute_conditional_gkde(self, W):
+        """"""
+        self.W = W
+
+    def compute_surrogate_gkde(self):
+        """"""
+
+    def compute_confidence_bounds(self, p_confidence=0.95):
+        """"""
