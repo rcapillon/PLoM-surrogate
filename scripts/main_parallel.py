@@ -84,7 +84,7 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 200
-    n_MC = 1000
+    n_MC = 100
 
     eps = 3.
     m = 10
@@ -148,6 +148,9 @@ if __name__ == '__main__':
     ax.legend()
     plt.grid()
     plt.savefig('./test_surrogate_timeseries.png')
+
+    # Saving surrogate model
+    surrogate_model.save_surrogate('./test_surrogate.dill')
 
     # Ending timer
     t1 = time.time()

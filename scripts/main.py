@@ -47,7 +47,7 @@ if __name__ == '__main__':
         data[:, :, (i * n_samples_U):((i + 1) * n_samples_U)] = data_i
     dataset = Dataset(data, n_Y)
 
-    n_q = 5
+    n_q = 10
     dataset.pca_on_Y(n_q)
     dataset.full_pca_on_X()
     recovered_X = dataset.recover_X(dataset.H_data)

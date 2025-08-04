@@ -69,8 +69,9 @@ class Surrogate:
         """"""
         samples = self.surrogate_gkde.conditional_resample(n_samples,
                                                            x_cond=W,
-                                                           dims_cond=[range(self.n_Y, self.data.shape[0])])
-
+                                                           dims_cond=list(range(self.n_Y, self.data.shape[0])))
+        print('shape of conditional samples')
+        print(samples.shape)
         return samples
 
     def compute_conditional_mean(self, W, n_samples):
