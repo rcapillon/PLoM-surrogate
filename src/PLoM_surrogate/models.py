@@ -68,10 +68,9 @@ class Surrogate:
     def conditional_sample(self, W, n_samples):
         """"""
         samples = self.surrogate_gkde.conditional_resample(n_samples,
-                                                           x_cond=W,
+                                                           x_cond=W[:, np.newaxis].transpose(),
                                                            dims_cond=list(range(self.n_Y, self.data.shape[0])))
-        print('shape of conditional samples')
-        print(samples.shape)
+        samples = np.squeeze(samples, axis=-1)
         return samples
 
     def compute_conditional_mean(self, W, n_samples):
@@ -94,8 +93,8 @@ class Surrogate:
         """"""
         y_data = self.data[idx_y, self.idx_t, :]
         y_mean = np.mean(y_data)
-        centered_y_data = y_data - np.tile(y_mean[np.newaxis], (y_data.shape[1]))
-        y_std = np.sqrt(np.dot(centered_y_data, centered_y_data.T) / (y_data.shape[1] - 1))
+        centered_y_data = y_data - np.ones(y_data.shape) * y_mean
+        y_std = np.sqrt(np.dot(centered_y_data, centered_y_data.T) / (y_data.shape[0] - 1))
         centered_reduced_y_data = centered_y_data / y_std
 
         centered_reduced_y = (y - y_mean) / y_std

@@ -84,7 +84,7 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 200
-    n_MC = 100
+    n_MC = 5
 
     eps = 3.
     m = 10
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     mat_a = build_mat_a(mat_g)
 
     # Parallel processing
-    n_cpu = 6
+    n_cpu = 2
     n_jobs_per_cpu = 1
     pool = Pool(processes=n_cpu)
 
