@@ -5,4 +5,5 @@ build/
 PLoM_surrogate.egg-info/
 # exclude some files
 *.png
+*.dill
 TODO.txt

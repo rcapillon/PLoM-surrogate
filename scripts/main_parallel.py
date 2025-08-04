@@ -26,9 +26,9 @@ if __name__ == '__main__':
     # Generate a dataset, plot trajectories, perform PCA on model outputs, then recover model outputs
     # and plot recovered trajectories
     n_Y = 1
-    n_samples_U = 5
+    n_samples_U = 10
     t = np.linspace(0., 10 * np.pi, 40)
-    n_W = 3
+    n_W = 5
     n_W_tot = n_W ** 2
     n_samples_tot = n_samples_U * n_W_tot
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         data[:, :, (i * n_samples_U):((i + 1) * n_samples_U)] = data_i
     dataset = Dataset(data, n_Y)
 
-    n_q = 5
+    n_q = 10
     dataset.pca_on_Y(n_q)
     dataset.full_pca_on_X()
     recovered_X = dataset.recover_X(dataset.H_data)
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 200
-    n_MC = 5
+    n_MC = 100
 
     eps = 3.
     m = 10
@@ -93,14 +93,13 @@ if __name__ == '__main__':
     mat_a = build_mat_a(mat_g)
 
     # Parallel processing
-    n_cpu = 2
-    n_jobs_per_cpu = 1
+    n_cpu = 6
     pool = Pool(processes=n_cpu)
 
     # MCMC
     total_data_MCMC = np.empty((n_Y + W.shape[0], t.size, 0))
     progress_bar = True
-    inputs = [(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar)] * n_cpu * n_jobs_per_cpu
+    inputs = [(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar)] * n_cpu
 
     for data_MCMC in pool.starmap(generator_ISDE, inputs):
         total_data_MCMC = np.concatenate((total_data_MCMC, data_MCMC), axis=-1)
@@ -124,8 +123,8 @@ if __name__ == '__main__':
     surrogate_n_samples = 10000
     confidence_level = 0.95
     ls_surrogate_mean = []
-    ls_surrogate_lower_bound = []
-    ls_surrogate_upper_bound = []
+    ls_surrogate_lower_bound = np.zeros((t.size, ))
+    ls_surrogate_upper_bound = np.zeros((t.size, ))
 
     for i in tqdm(range(t.size)):
         surrogate_model.compute_surrogate_gkde(i)
@@ -133,14 +132,14 @@ if __name__ == '__main__':
         ls_surrogate_mean.append(mean_i)
         lower_bound, upper_bound = surrogate_model.compute_conditional_confidence_interval(W_conditional,
                                                                                            confidence_level)
-        ls_surrogate_lower_bound.append(lower_bound)
-        ls_surrogate_upper_bound.append(upper_bound)
+        ls_surrogate_lower_bound[i] = lower_bound[0]
+        ls_surrogate_upper_bound[i] = upper_bound[0]
 
     # Plot
     _, ax = plt.subplots()
     ax.plot(t, ls_surrogate_mean, '-k', label='mean')
-    ax.plot(t, ls_surrogate_lower_bound, '-g', label='lower confidence bound')
-    ax.plot(t, ls_surrogate_upper_bound, '-r', label='upper confidence bound')
+    ax.plot(t, ls_surrogate_lower_bound, '--g', label='lower confidence bound')
+    ax.plot(t, ls_surrogate_upper_bound, '--r', label='upper confidence bound')
     ax.fill_between(t, ls_surrogate_lower_bound, ls_surrogate_upper_bound, color='cyan')
     ax.set_title('Surrogate model conditional prediction: mean and 95% confidence interval\nW0=2 , W1= 1')
     ax.set_xlabel('t')
