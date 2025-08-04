@@ -7,8 +7,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from multiprocessing import Pool
+from tqdm import tqdm
 
-from PLoM_surrogate.models import model_sinc
+from PLoM_surrogate.models import model_sinc, Surrogate
 from PLoM_surrogate.generators import generator_U, generator_ISDE
 from PLoM_surrogate.data import generate_data_sinc, Dataset
 from PLoM_surrogate.dmaps import construct_dmaps_basis, build_mat_a
@@ -21,6 +22,7 @@ if __name__ == '__main__':
     # Starting timer
     t0 = time.time()
 
+    ####
     # Generate a dataset, plot trajectories, perform PCA on model outputs, then recover model outputs
     # and plot recovered trajectories
     n_Y = 1
@@ -72,6 +74,7 @@ if __name__ == '__main__':
     plt.grid()
     plt.show()
 
+    ####
     # Generate a large number of additional realizations from an original dataset
     # using diffusion maps basis and the ISDE generator
 
@@ -89,11 +92,12 @@ if __name__ == '__main__':
     mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa)
     mat_a = build_mat_a(mat_g)
 
-    # parallel processing
+    # Parallel processing
     n_cpu = 6
     n_jobs_per_cpu = 1
     pool = Pool(processes=n_cpu)
 
+    # MCMC
     total_data_MCMC = np.empty((n_Y + W.shape[0], t.size, 0))
     progress_bar = True
     inputs = [(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar)] * n_cpu * n_jobs_per_cpu
@@ -109,6 +113,41 @@ if __name__ == '__main__':
     ax.set_ylabel('Y')
     plt.grid()
     plt.show()
+
+    ####
+    # Create a surrogate model for every time-step, compute a conditional mean and confidence interval, plot results
+    print('Computing surrogate model...')
+
+    W_conditional = np.array([2., 1.])
+    surrogate_model = Surrogate(total_data_MCMC, n_Y, t)
+
+    surrogate_n_samples = 10000
+    confidence_level = 0.95
+    ls_surrogate_mean = []
+    ls_surrogate_lower_bound = []
+    ls_surrogate_upper_bound = []
+
+    for i in tqdm(range(t.size)):
+        surrogate_model.compute_surrogate_gkde(i)
+        mean_i = surrogate_model.compute_conditional_mean(W_conditional, surrogate_n_samples)
+        ls_surrogate_mean.append(mean_i)
+        lower_bound, upper_bound = surrogate_model.compute_conditional_confidence_interval(W_conditional,
+                                                                                           confidence_level)
+        ls_surrogate_lower_bound.append(lower_bound)
+        ls_surrogate_upper_bound.append(upper_bound)
+
+    # Plot
+    _, ax = plt.subplots()
+    ax.plot(t, ls_surrogate_mean, '-k', label='mean')
+    ax.plot(t, ls_surrogate_lower_bound, '-g', label='lower confidence bound')
+    ax.plot(t, ls_surrogate_upper_bound, '-r', label='upper confidence bound')
+    ax.fill_between(t, ls_surrogate_lower_bound, ls_surrogate_upper_bound, color='cyan')
+    ax.set_title('Surrogate model conditional prediction: mean and 95% confidence interval\nW0=2 , W1= 1')
+    ax.set_xlabel('t')
+    ax.set_ylabel('Y')
+    ax.legend()
+    plt.grid()
+    plt.savefig('./test_surrogate_timeseries.png')
 
     # Ending timer
     t1 = time.time()

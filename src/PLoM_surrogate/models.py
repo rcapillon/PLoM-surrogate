@@ -93,7 +93,7 @@ class Surrogate:
         """"""
         y_data = self.data[idx_y, self.idx_t, :]
         y_mean = np.mean(y_data)
-        centered_y_data = y_data - np.tile(y_mean[np.newaxis], (Y_data.shape[1]))
+        centered_y_data = y_data - np.tile(y_mean[np.newaxis], (y_data.shape[1]))
         y_std = np.sqrt(np.dot(centered_y_data, centered_y_data.T) / (y_data.shape[1] - 1))
         centered_reduced_y_data = centered_y_data / y_std
 
