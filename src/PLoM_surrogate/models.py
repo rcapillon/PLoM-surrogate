@@ -20,7 +20,6 @@ def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
     Y: Nt-dimensional vector of outputs (time series)
 
     """
-
     if W.ndim != 1 or W.size != 2:
         raise ValueError('W must be a numpy vector with 2 components.')
     if U.ndim != 1 or U.size != 2:
@@ -35,6 +34,60 @@ def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
     Y = W[0] * np.sinc((2 * arr_t + U[0]) / U[1]) + W[1]
 
     return Y
+
+
+def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
+                          x: Union[list, np.ndarray], t: Union[list, np.ndarray],
+                          Fmax: float):
+    """
+    Quasi-static deflection of a cantilever beam of length 1m, subjected to a downwards concentrated load
+    at a given abscissa.
+
+    Parameters
+    ----------
+    W: Single control parameter, corresponding to the abscissa where the load is applied
+    U: 2-dimensional vector of uncertain parameters.
+        U[0] is the Young's modulus, U[1] is the second moment of area (m^4)
+    x: Abscissa along the beam
+    t: List or numpy vector of Nt pseudo-time values between 0 and 1 for which the output is calculated
+    Fmax: Constant parameter, corresponding to the maximal value for the load.
+        The load evolves linearly with t, reaching Fmax at t=1
+
+    Returns
+    -------
+    y: Nx x Nt array of deflections for the beam
+
+    """
+    if W.ndim != 1 or W.size != 1:
+        raise ValueError('W must be a numpy vector with 1 components.')
+    if U.ndim != 1 or U.size != 2:
+        raise ValueError('U must be a numpy vector with 2 components.')
+    if isinstance(x, list):
+        arr_x = np.array(x)
+    elif isinstance(x, np.ndarray) and x.ndim == 1:
+        arr_x = x
+    else:
+        raise TypeError('Argument x must be a list or a numpy vector.')
+    if isinstance(t, list):
+        arr_t = np.array(t)
+    elif isinstance(t, np.ndarray) and t.ndim == 1:
+        arr_t = t
+    else:
+        raise TypeError('Argument t must be a list or a numpy vector.')
+    if Fmax <= 0:
+        raise ValueError('Argument Fmax must be strictly positive.')
+
+    y = np.zeros((x.size, t.size))
+    for j in range(t.size):
+        F = arr_t[j] * Fmax
+        for i in range(x.size):
+            x_i = arr_x[i]
+            if x_i < W[0]:
+                y[i, j] = F * (x_i ** 2) * (3 * W[0] - x_i) / (6 * U[0] * U[1])
+            else:
+                y[i, j] = F * (W[0] ** 2) * (3 * x_i - W[0]) / (6 * U[0] * U[1])
+
+    return y
 
 
 class Surrogate:
