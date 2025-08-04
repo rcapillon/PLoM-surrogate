@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # and plot recovered trajectories
     n_Y = 1
     n_samples_U = 10
-    t = np.linspace(0., 10 * np.pi, 40)
+    t = np.linspace(0., 10 * np.pi, 50)
     n_W = 5
     n_W_tot = n_W ** 2
     n_samples_tot = n_samples_U * n_W_tot
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     # Create a surrogate model for every time-step, compute a conditional mean and confidence interval, plot results
     print('Computing surrogate model...')
 
-    W_conditional = np.array([2., 1.])
+    W_conditional = np.array([1.75, 1.25])
     surrogate_model = Surrogate(total_data_MCMC, n_Y, t)
 
     surrogate_n_samples = 10000
