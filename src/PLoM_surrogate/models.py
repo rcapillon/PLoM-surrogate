@@ -85,9 +85,9 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
         for i in range(x.size):
             x_i = arr_x[i]
             if x_i < W[0]:
-                y[i, j] = F * (x_i ** 2) * (3 * W[0] - x_i) / (6 * U[0] * U[1])
+                y[i, j] = -F * (x_i ** 2) * (3 * W[0] - x_i) / (6 * U[0] * U[1])
             else:
-                y[i, j] = F * (W[0] ** 2) * (3 * x_i - W[0]) / (6 * U[0] * U[1])
+                y[i, j] = -F * (W[0] ** 2) * (3 * x_i - W[0]) / (6 * U[0] * U[1])
 
     return y
 

@@ -77,12 +77,12 @@ if __name__ == '__main__':
     Fac = 20
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
-    M_0 = 100
+    M_0 = 250
     n_MC = 10
 
     eps = 3.
     # m = 125
-    m = 60
+    m = 40
     kappa = 1
     mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa, plot_eigvals_name='cantilever')
     mat_a = build_mat_a(mat_g)
@@ -114,43 +114,35 @@ if __name__ == '__main__':
     # Create a surrogate model for every time-step, compute a conditional mean and confidence interval, plot results
     print('Computing surrogate model...')
 
-    # W_conditional = np.array([2.5, 0.5])
-    W_conditional = np.array([2.25, 0.75])
-    # W_conditional = np.array([2., 1.])
+    W_conditional = np.array([0.88])
     surrogate_model = Surrogate(total_data_MCMC, n_Y, t)
 
     surrogate_n_samples = 10000
     confidence_level = 0.99
-    ls_surrogate_mean = []
-    ls_surrogate_lower_bound = np.zeros((t.size, ))
-    ls_surrogate_upper_bound = np.zeros((t.size, ))
 
-    for i in tqdm(range(t.size)):
-        surrogate_model.compute_surrogate_gkde(i)
-        mean_i = surrogate_model.compute_conditional_mean(W_conditional, surrogate_n_samples)
-        ls_surrogate_mean.append(mean_i)
-        lower_bound, upper_bound = surrogate_model.compute_conditional_confidence_interval(W_conditional,
-                                                                                           surrogate_n_samples,
-                                                                                           confidence_level)
-        ls_surrogate_lower_bound[i] = lower_bound[0]
-        ls_surrogate_upper_bound[i] = upper_bound[0]
+    surrogate_model.compute_surrogate_gkde(t.size - 1)
+    surrogate_mean = surrogate_model.compute_conditional_mean(W_conditional, surrogate_n_samples)
+    surrogate_lower_bound, surrogate_upper_bound = surrogate_model.compute_conditional_confidence_interval(
+        W_conditional,
+        surrogate_n_samples,
+        confidence_level)
 
     # Plot
     _, ax = plt.subplots()
-    ax.plot(t, ls_surrogate_mean, '-k', label='mean')
-    ax.plot(t, ls_surrogate_lower_bound, '--g', label='lower confidence bound')
-    ax.plot(t, ls_surrogate_upper_bound, '--r', label='upper confidence bound')
+    ax.plot(x, surrogate_mean, '-k', label='mean')
+    ax.plot(x, surrogate_lower_bound, '--g', label='lower confidence bound')
+    ax.plot(x, surrogate_upper_bound, '--r', label='upper confidence bound')
     ax.fill_between(t, ls_surrogate_lower_bound, ls_surrogate_upper_bound, color='cyan')
-    ax.set_title(f'Surrogate model conditional prediction: mean and 95% confidence interval\n'
-                 f'W0={W_conditional[0]} , W1= {W_conditional[1]}')
-    ax.set_xlabel('t')
-    ax.set_ylabel('Y')
+    ax.set_title(f'Surrogate model conditional prediction of deflection\nat last time-step: '
+                 f'mean and 95% confidence interval\nW={W_conditional[0]}')
+    ax.set_xlabel('x')
+    ax.set_ylabel('deflection')
     ax.legend()
     plt.grid()
-    plt.savefig('./test_surrogate_timeseries.png')
+    plt.savefig('./cantilever_surrogate_deflection.png')
 
     # Saving surrogate model
-    surrogate_model.save_surrogate('./test_surrogate.dill')
+    surrogate_model.save_surrogate('./cantilever_surrogate.dill')
 
     # Ending timer
     t1 = time.time()
