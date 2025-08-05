@@ -6,7 +6,7 @@ from PLoM_surrogate.models import model_sinc
 from PLoM_surrogate.dmaps import compute_L
 
 
-def generator_U(n_samples):
+def generator_U_sinc(n_samples):
     """
 
     Parameters
@@ -25,28 +25,6 @@ def generator_U(n_samples):
     U[1, :] = u1
 
     return U
-
-
-def generator_W(n_samples):
-    """
-
-    Parameters
-    ----------
-    n_samples: number of desired samples
-
-    Returns
-    -------
-    mat_W: 2 x n_samples matrix of realizations of control vector W
-
-    """
-    W = np.random.rand(2, n_samples)
-
-    W[0, :] *= 2
-    W[0, :] += 1
-
-    W[1, :] *= 2
-
-    return W
 
 
 def generator_mat_N(nu, m):

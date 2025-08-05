@@ -1,6 +1,6 @@
 import numpy as np
 
-from PLoM_surrogate.generators import generator_U, generator_W
+from PLoM_surrogate.generators import generator_U_sinc
 from PLoM_surrogate.models import model_sinc
 from numpy.ma.core import zeros_like
 
@@ -21,7 +21,7 @@ def generate_data_sinc(W, t, n_samples):
     the values of the control parameters used to generate the Y time series data.
 
     """
-    U_samples = generator_U(n_samples)
+    U_samples = generator_U_sinc(n_samples)
     data = np.zeros((3, t.size, n_samples))
     for i in range(n_samples):
         U = U_samples[:, i]
