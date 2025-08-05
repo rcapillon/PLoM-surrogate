@@ -22,11 +22,9 @@ def generate_data_sinc(W, t, n_samples):
 
     """
     U_samples = generator_U(n_samples)
-    W_samples = generator_W(n_samples)
     data = np.zeros((3, t.size, n_samples))
     for i in range(n_samples):
         U = U_samples[:, i]
-        # W = W_samples[:, i]
         data[0, :, i] = model_sinc(W, U, t)
         data[1:, :, i] = np.tile(W[:, np.newaxis], (1, t.size))
 
