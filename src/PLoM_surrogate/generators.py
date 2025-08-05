@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import truncnorm, beta, multivariate_normal, Covariance
+from scipy.stats import truncnorm, beta, multivariate_normal, uniform, Covariance
 from tqdm import tqdm
 
 from PLoM_surrogate.models import model_sinc
@@ -25,6 +25,19 @@ def generator_U_sinc(n_samples):
     U[1, :] = u1
 
     return U
+
+
+def generator_E_cantilever(n_samples):
+    """"""
+
+
+
+def generator_I_cantilever(n_samples):
+    """"""
+    D = uniform.rvs(loc=0.5, scale=1., size=n_samples)
+    quadratic_moment_of_area = np.pi * np.power(D, 4) / 64.
+
+    return quadratic_moment_of_area
 
 
 def generator_mat_N(nu, m):

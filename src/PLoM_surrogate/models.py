@@ -1,6 +1,7 @@
 from typing import Union
 import numpy as np
 from scipy.special import erf
+from scipy.stats import gaussian_kde
 from kdetools import gaussian_kde as gkde
 import dill
 
@@ -107,6 +108,7 @@ class Surrogate:
         self.surrogate_gkde = None
         self.lower_confidence_bound = None
         self.upper_confidence_bound = None
+        self.conditional_marginal_pdf_gkde = None
 
     def compute_surrogate_gkde(self, idx_t):
         """"""
@@ -209,6 +211,14 @@ class Surrogate:
             Y_upper_confidence_bound[i] = ordered_samples_i[-(n_rejected_samples + 1)]
 
         return Y_lower_confidence_bound, Y_upper_confidence_bound
+
+    def evaluate_conditional_marginal_pdf(self, idx_y, W, n_samples, ymin, ymax, n_points):
+        samples = self.conditional_sample(W, n_samples)
+        self.conditional_marginal_pdf_gkde = gaussian_kde(samples[idx_y, :])
+        points = np.linspace(ymin, ymax, n_points)
+        pdf_values = self.conditional_marginal_pdf_gkde.pdf(points)
+
+        return pdf_values
 
     def save_surrogate(self, save_path):
         """

@@ -139,7 +139,7 @@ if __name__ == '__main__':
         ls_surrogate_lower_bound[i] = lower_bound[0]
         ls_surrogate_upper_bound[i] = upper_bound[0]
 
-    # Plot
+    # Plot conditional mean trajectory with confidence interval
     _, ax = plt.subplots()
     ax.plot(t, ls_surrogate_mean, '-k', label='mean')
     ax.plot(t, ls_surrogate_lower_bound, '--g', label='lower confidence bound')
@@ -152,6 +152,25 @@ if __name__ == '__main__':
     ax.legend()
     plt.grid()
     plt.savefig('./test_surrogate_timeseries.png')
+
+    # Plot conditional pdf at given time-step
+    idx_y = 0
+    idx_t = 20
+    ymin = 0.5
+    ymax = 1.5
+    n_points = 1000
+    points = np.linspace(ymin, ymax, n_points)
+    surrogate_model.compute_surrogate_gkde(idx_t)
+    pdf_values = surrogate_model.evaluate_conditional_marginal_pdf(idx_y, W_conditional,
+                                                                   surrogate_n_samples, ymin, ymax, n_points)
+
+    _, ax = plt.subplots()
+    ax.plot(points, pdf_values, '-b')
+    ax.set_title(f'Probability Density Function at {idx_t}-th time step')
+    ax.set_xlabel('y')
+    ax.set_ylabel('pdf')
+    plt.grid()
+    plt.savefig('./test_surrogate_pdf.png')
 
     # Saving surrogate model
     surrogate_model.save_surrogate('./test_surrogate.dill')
