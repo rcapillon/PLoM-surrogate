@@ -63,7 +63,7 @@ if __name__ == '__main__':
     ax.set_xlabel('t')
     ax.set_ylabel('Y')
     plt.grid()
-    plt.savefig('./test_original_data.png')
+    plt.savefig('./sinc_original_data.png')
 
     _, ax = plt.subplots()
     for i in range(n_samples_tot):
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     ax.set_xlabel('t')
     ax.set_ylabel('Y')
     plt.grid()
-    plt.savefig('./test_recovered_data.png')
+    plt.savefig('./sinc_recovered_data.png')
 
     ####
     # Generate a large number of additional realizations from an original dataset
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     # m = 125
     m = 70
     kappa = 1
-    mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa, plot_eigvals=True)
+    mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa, plot_eigvals_name='sinc')
     mat_a = build_mat_a(mat_g)
 
     # Parallel processing
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     ax.set_xlabel('t')
     ax.set_ylabel('Y')
     plt.grid()
-    plt.savefig('./test_mcmc_data.png')
+    plt.savefig('./sinc_mcmc_data.png')
 
     ####
     # Create a surrogate model for every time-step, compute a conditional mean and confidence interval, plot results
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     ax.set_ylabel('Y')
     ax.legend()
     plt.grid()
-    plt.savefig('./test_surrogate_timeseries.png')
+    plt.savefig('./sinc_surrogate_timeseries.png')
 
     # Plot conditional pdf at given time-step
     idx_y = 0
@@ -170,10 +170,10 @@ if __name__ == '__main__':
     ax.set_xlabel('y')
     ax.set_ylabel('pdf')
     plt.grid()
-    plt.savefig('./test_surrogate_pdf.png')
+    plt.savefig('./sinc_surrogate_pdf.png')
 
     # Saving surrogate model
-    surrogate_model.save_surrogate('./test_surrogate.dill')
+    surrogate_model.save_surrogate('./sinc_surrogate.dill')
 
     # Ending timer
     t1 = time.time()

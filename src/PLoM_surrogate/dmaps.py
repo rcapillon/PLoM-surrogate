@@ -84,7 +84,7 @@ def build_mat_Ps(mat_b, mat_K):
     return mat_Ps
 
 
-def construct_dmaps_basis(mat_eta, eps, m, kappa, plot_eigvals=False):
+def construct_dmaps_basis(mat_eta, eps, m, kappa, plot_eigvals_name=None):
     """
 
     Parameters
@@ -93,6 +93,7 @@ def construct_dmaps_basis(mat_eta, eps, m, kappa, plot_eigvals=False):
     eps: smoothing parameter (must be positive) used for the kernel
     m: number of retained diffusion maps basis vectors
     kappa: number of steps used to calculate diffusion distance
+    plot_eigvals_name: prefix name for saving the plot of eigenvalues used for the dmaps basis
 
     Returns
     -------
@@ -108,14 +109,14 @@ def construct_dmaps_basis(mat_eta, eps, m, kappa, plot_eigvals=False):
     sorted_eigvals = np.real(eigvals[inds_sort_eigvals])
     sorted_eigvects = np.real(eigvects[:, inds_sort_eigvals])
 
-    if plot_eigvals:
+    if plot_eigvals_name is not None:
         _, ax = plt.subplots()
         ax.semilogy(sorted_eigvals, '-b')
         ax.set_title('eigenvalues of [Ps]')
         ax.set_xlabel('index')
         ax.set_ylabel('eigenvalues')
         plt.grid()
-        plt.savefig('./test_dmaps_eigenvalues.png')
+        plt.savefig('./' + plot_eigvals_name + '_dmaps_eigenvalues.png')
 
     vec_lambda = sorted_eigvals[:m]
     mat_phi = sorted_eigvects[:, :m]

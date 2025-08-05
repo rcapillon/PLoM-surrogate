@@ -84,7 +84,7 @@ if __name__ == '__main__':
     # m = 125
     m = 60
     kappa = 1
-    mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa, plot_eigvals=True)
+    mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa, plot_eigvals_name='cantilever')
     mat_a = build_mat_a(mat_g)
 
     # Parallel processing
