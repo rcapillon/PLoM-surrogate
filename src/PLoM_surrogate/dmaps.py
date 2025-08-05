@@ -79,6 +79,7 @@ def build_mat_Ps(mat_b, mat_K):
     """
     inv_sqrt_b = np.linalg.inv(np.sqrt(mat_b))
     mat_Ps = np.dot(inv_sqrt_b, np.dot(mat_K, inv_sqrt_b))
+    mat_Ps = 0.5 * (mat_Ps + mat_Ps.T)
 
     return mat_Ps
 
@@ -104,8 +105,8 @@ def construct_dmaps_basis(mat_eta, eps, m, kappa, plot_eigvals=False):
 
     eigvals, eigvects = np.linalg.eig(mat_Ps)
     inds_sort_eigvals = np.flip(np.argsort(eigvals))
-    sorted_eigvals = eigvals[inds_sort_eigvals]
-    sorted_eigvects = eigvects[:, inds_sort_eigvals]
+    sorted_eigvals = np.real(eigvals[inds_sort_eigvals])
+    sorted_eigvects = np.real(eigvects[:, inds_sort_eigvals])
 
     if plot_eigvals:
         _, ax = plt.subplots()

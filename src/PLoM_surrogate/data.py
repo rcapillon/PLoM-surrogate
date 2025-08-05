@@ -44,7 +44,9 @@ def generate_data_cantilever(W, x, t, Fmax, n_samples):
     for i in range(n_samples):
         U = U_samples[:, i]
         data[:n_y, :, i] = model_cantilever_beam(W, U, x, t, Fmax)
-        data[-1, :, i] = W[0]
+        data[-1, :, i] = W
+
+    return data
 
 
 class Dataset:
@@ -135,7 +137,7 @@ class Dataset:
         recovered_data[self.n_Y:, :, :] = np.tile(X[self.n_q:, np.newaxis, :], (1, self.n_t, 1))
 
         for i in range(self.n_Y):
-            recovered_data[i, :, :] = recovered_reshaped_data[(i + i * self.n_t):(i + (i + 1) * self.n_t), :]
+            recovered_data[i, :, :] = recovered_reshaped_data[(i * self.n_t):((i + 1) * self.n_t), :]
 
         recovered_unscaled_data = self.unscale_data_wrt_realizations(recovered_data)
 
