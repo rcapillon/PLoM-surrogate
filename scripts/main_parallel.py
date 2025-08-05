@@ -84,16 +84,16 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 100
-    n_MC = 40
+    n_MC = 10
 
     eps = 3.
-    m = 50
+    m = 100
     kappa = 1
     mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa)
     mat_a = build_mat_a(mat_g)
 
     # Parallel processing
-    n_cpu = 4
+    n_cpu = 6
     pool = Pool(processes=n_cpu)
 
     # MCMC
