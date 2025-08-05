@@ -1,6 +1,6 @@
 import numpy as np
 
-from PLoM_surrogate.generators import generator_U
+from PLoM_surrogate.generators import generator_U, generator_W
 from PLoM_surrogate.models import model_sinc
 from numpy.ma.core import zeros_like
 
@@ -10,7 +10,7 @@ def generate_data_sinc(W, t, n_samples):
 
     Parameters
     ----------
-    W: 2-dimensional vector of control parameters
+    W: 2-dimensional numpy vector of control parameter values
     t: List or numpy vector of Nt time values for which the output is calculated
     n_samples: Number of desired sample
 
@@ -22,6 +22,7 @@ def generate_data_sinc(W, t, n_samples):
 
     """
     U_samples = generator_U(n_samples)
+    W_samples = generator_W(n_samples)
     data = np.zeros((3, t.size, n_samples))
     for i in range(n_samples):
         U = U_samples[:, i]

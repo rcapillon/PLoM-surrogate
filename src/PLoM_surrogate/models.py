@@ -42,6 +42,7 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
     """
     Quasi-static deflection of a cantilever beam of length 1m, subjected to a downwards concentrated load
     at a given abscissa.
+    Source: https://home.engineering.iastate.edu/~shermanp/STAT447/STAT%20Articles/Beam_Deflection_Formulae.pdf
 
     Parameters
     ----------
@@ -148,6 +149,8 @@ class Surrogate:
         y_mean = np.mean(y_data)
         centered_y_data = y_data - np.ones(y_data.shape) * y_mean
         y_std = np.sqrt(np.dot(centered_y_data, centered_y_data.T) / (y_data.shape[0] - 1))
+        if y_std <= 1e-6:
+            y_std = 1.
         centered_reduced_y_data = centered_y_data / y_std
 
         centered_reduced_y = (y - y_mean) / y_std
@@ -157,11 +160,13 @@ class Surrogate:
         centered_W_data = W_data - np.tile(W_mean[:, np.newaxis], (1, W_data.shape[1]))
         W_covar = np.dot(centered_W_data, centered_W_data.T) / (W_data.shape[1] - 1)
         W_stds = np.sqrt(np.diag(W_covar))
+        W_stds[W_stds <= 1e-6] = 1.
         centered_reduced_W_data = np.divide(centered_W_data, np.tile(W_stds[:, np.newaxis], (1, W_data.shape[1])))
 
         centered_reduced_W = np.divide(W - W_mean, W_stds)
 
-        s = np.power(4 / (self.data.shape[1] * (3 + W_data.shape[0])), 1 / (W_data.shape[0] + 5))
+        s = np.power(4 / (self.data.shape[1] * (2 + self.vec_t.size + W_data.shape[0])),
+                     1 / (self.vec_t.size + W_data.shape[0] + 4))
         numerator = 0.
         denominator = 0.
         for i in range(self.data.shape[1]):

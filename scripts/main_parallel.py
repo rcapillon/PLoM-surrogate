@@ -83,17 +83,17 @@ if __name__ == '__main__':
     Fac = 20
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
-    M_0 = 200
-    n_MC = 100
+    M_0 = 100
+    n_MC = 40
 
     eps = 3.
-    m = 10
+    m = 50
     kappa = 1
     mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa)
     mat_a = build_mat_a(mat_g)
 
     # Parallel processing
-    n_cpu = 6
+    n_cpu = 4
     pool = Pool(processes=n_cpu)
 
     # MCMC
@@ -117,7 +117,8 @@ if __name__ == '__main__':
     # Create a surrogate model for every time-step, compute a conditional mean and confidence interval, plot results
     print('Computing surrogate model...')
 
-    W_conditional = np.array([1.75, 1.25])
+    W_conditional = np.array([2.5, 0.5])
+    # W_conditional = np.array([2., 1.])
     surrogate_model = Surrogate(total_data_MCMC, n_Y, t)
 
     surrogate_n_samples = 10000
@@ -131,7 +132,9 @@ if __name__ == '__main__':
         mean_i = surrogate_model.compute_conditional_mean(W_conditional, surrogate_n_samples)
         ls_surrogate_mean.append(mean_i)
         lower_bound, upper_bound = surrogate_model.compute_conditional_confidence_interval(W_conditional,
-                                                                                           confidence_level)
+                                                                                           confidence_level,
+                                                                                           Y_lower_bound=-10,
+                                                                                           Y_upper_bound=+10)
         ls_surrogate_lower_bound[i] = lower_bound[0]
         ls_surrogate_upper_bound[i] = upper_bound[0]
 
@@ -141,7 +144,8 @@ if __name__ == '__main__':
     ax.plot(t, ls_surrogate_lower_bound, '--g', label='lower confidence bound')
     ax.plot(t, ls_surrogate_upper_bound, '--r', label='upper confidence bound')
     ax.fill_between(t, ls_surrogate_lower_bound, ls_surrogate_upper_bound, color='cyan')
-    ax.set_title('Surrogate model conditional prediction: mean and 95% confidence interval\nW0=2 , W1= 1')
+    ax.set_title(f'Surrogate model conditional prediction: mean and 95% confidence interval\n'
+                 f'W0={W_conditional[0]} , W1= {W_conditional[1]}')
     ax.set_xlabel('t')
     ax.set_ylabel('Y')
     ax.legend()
