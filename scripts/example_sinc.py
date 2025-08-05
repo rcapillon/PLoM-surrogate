@@ -10,7 +10,7 @@ from multiprocessing import Pool
 from tqdm import tqdm
 
 from PLoM_surrogate.models import model_sinc, Surrogate
-from PLoM_surrogate.generators import generator_U, generator_ISDE
+from PLoM_surrogate.generators import generator_ISDE
 from PLoM_surrogate.data import generate_data_sinc, Dataset
 from PLoM_surrogate.dmaps import construct_dmaps_basis, build_mat_a
 
