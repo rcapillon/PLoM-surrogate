@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def gaussian_kernel(vec1, vec2, eps):
@@ -82,7 +83,7 @@ def build_mat_Ps(mat_b, mat_K):
     return mat_Ps
 
 
-def construct_dmaps_basis(mat_eta, eps, m, kappa):
+def construct_dmaps_basis(mat_eta, eps, m, kappa, plot_eigvals=False):
     """
 
     Parameters
@@ -105,6 +106,15 @@ def construct_dmaps_basis(mat_eta, eps, m, kappa):
     inds_sort_eigvals = np.flip(np.argsort(eigvals))
     sorted_eigvals = eigvals[inds_sort_eigvals]
     sorted_eigvects = eigvects[:, inds_sort_eigvals]
+
+    if plot_eigvals:
+        _, ax = plt.subplots()
+        ax.semilogy(sorted_eigvals, '-b')
+        ax.set_title('eigenvalues of [Ps]')
+        ax.set_xlabel('index')
+        ax.set_ylabel('eigenvalues')
+        plt.grid()
+        plt.savefig('./test_dmaps_eigenvalues.png')
 
     vec_lambda = sorted_eigvals[:m]
     mat_phi = sorted_eigvects[:, :m]

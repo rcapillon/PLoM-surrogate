@@ -27,8 +27,8 @@ if __name__ == '__main__':
     # and plot recovered trajectories
     n_Y = 1
     n_samples_U = 10
-    t = np.linspace(0., 10 * np.pi, 50)
-    n_W = 5
+    t = np.linspace(0., 10 * np.pi, 100)
+    n_W = 3
     n_W_tot = n_W ** 2
     n_samples_tot = n_samples_U * n_W_tot
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         data[:, :, (i * n_samples_U):((i + 1) * n_samples_U)] = data_i
     dataset = Dataset(data, n_Y)
 
-    n_q = 10
+    n_q = 5
     dataset.pca_on_Y(n_q)
     dataset.full_pca_on_X()
     recovered_X = dataset.recover_X(dataset.H_data)
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     ax.set_xlabel('t')
     ax.set_ylabel('Y')
     plt.grid()
-    plt.show()
+    plt.savefig('./test_original_data.png')
 
     _, ax = plt.subplots()
     for i in range(n_samples_tot):
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     ax.set_xlabel('t')
     ax.set_ylabel('Y')
     plt.grid()
-    plt.show()
+    plt.savefig('./test_recovered_data.png')
 
     ####
     # Generate a large number of additional realizations from an original dataset
@@ -84,16 +84,17 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 100
-    n_MC = 10
+    n_MC = 60
 
     eps = 3.
-    m = 100
+    # m = 125
+    m = 70
     kappa = 1
-    mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa)
+    mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa, plot_eigvals=True)
     mat_a = build_mat_a(mat_g)
 
     # Parallel processing
-    n_cpu = 6
+    n_cpu = 4
     pool = Pool(processes=n_cpu)
 
     # MCMC
@@ -111,18 +112,19 @@ if __name__ == '__main__':
     ax.set_xlabel('t')
     ax.set_ylabel('Y')
     plt.grid()
-    plt.show()
+    plt.savefig('./test_mcmc_data.png')
 
     ####
     # Create a surrogate model for every time-step, compute a conditional mean and confidence interval, plot results
     print('Computing surrogate model...')
 
-    W_conditional = np.array([2.5, 0.5])
+    # W_conditional = np.array([2.5, 0.5])
+    W_conditional = np.array([2.25, 0.75])
     # W_conditional = np.array([2., 1.])
     surrogate_model = Surrogate(total_data_MCMC, n_Y, t)
 
     surrogate_n_samples = 10000
-    confidence_level = 0.95
+    confidence_level = 0.99
     ls_surrogate_mean = []
     ls_surrogate_lower_bound = np.zeros((t.size, ))
     ls_surrogate_upper_bound = np.zeros((t.size, ))
@@ -132,9 +134,8 @@ if __name__ == '__main__':
         mean_i = surrogate_model.compute_conditional_mean(W_conditional, surrogate_n_samples)
         ls_surrogate_mean.append(mean_i)
         lower_bound, upper_bound = surrogate_model.compute_conditional_confidence_interval(W_conditional,
-                                                                                           confidence_level,
-                                                                                           Y_lower_bound=-10,
-                                                                                           Y_upper_bound=+10)
+                                                                                           surrogate_n_samples,
+                                                                                           confidence_level)
         ls_surrogate_lower_bound[i] = lower_bound[0]
         ls_surrogate_upper_bound[i] = upper_bound[0]
 

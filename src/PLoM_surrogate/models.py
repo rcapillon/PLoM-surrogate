@@ -179,20 +179,34 @@ class Surrogate:
 
         return CDF_value
 
-    def compute_conditional_confidence_interval(self, W, p_confidence=0.95,
-                                                Y_lower_bound=-1e2, Y_upper_bound=1e2, n_points=10000):
+    # def compute_conditional_confidence_interval_old(self, W, p_confidence=0.95,
+    #                                                 Y_lower_bound=-1e2, Y_upper_bound=1e2, n_points=10000):
+    #     """"""
+    #     arr_y = np.linspace(Y_lower_bound, Y_upper_bound, n_points)
+    #     Y_lower_confidence_bound = np.zeros((self.n_Y, ))
+    #     Y_upper_confidence_bound = np.zeros((self.n_Y, ))
+    #     for i in range(self.n_Y):
+    #         CDF_values = np.zeros((n_points, ))
+    #         for j in range(n_points):
+    #             CDF_values[j] = self.compute_conditional_cdf_component(arr_y[j], i, W)
+    #         idx_lower_confidence_bound = (np.abs(CDF_values - (1 - p_confidence))).argmin()
+    #         idx_upper_confidence_bound = (np.abs(CDF_values - p_confidence)).argmin()
+    #         Y_lower_confidence_bound[i] = arr_y[idx_lower_confidence_bound]
+    #         Y_upper_confidence_bound[i] = arr_y[idx_upper_confidence_bound]
+    #
+    #     return Y_lower_confidence_bound, Y_upper_confidence_bound
+
+    def compute_conditional_confidence_interval(self, W, n_samples, p_confidence=0.95):
         """"""
-        arr_y = np.linspace(Y_lower_bound, Y_upper_bound, n_points)
-        Y_lower_confidence_bound = np.zeros((self.n_Y, ))
-        Y_upper_confidence_bound = np.zeros((self.n_Y, ))
+        n_rejected_samples = int(np.floor((1 - p_confidence) * n_samples / 2))
+        Y_lower_confidence_bound = np.zeros((self.n_Y,))
+        Y_upper_confidence_bound = np.zeros((self.n_Y,))
+
+        samples = self.conditional_sample(W, n_samples)
         for i in range(self.n_Y):
-            CDF_values = np.zeros((n_points, ))
-            for j in range(n_points):
-                CDF_values[j] = self.compute_conditional_cdf_component(arr_y[j], i, W)
-            idx_lower_confidence_bound = (np.abs(CDF_values - (1 - p_confidence))).argmin()
-            idx_upper_confidence_bound = (np.abs(CDF_values - p_confidence)).argmin()
-            Y_lower_confidence_bound[i] = arr_y[idx_lower_confidence_bound]
-            Y_upper_confidence_bound[i] = arr_y[idx_upper_confidence_bound]
+            ordered_samples_i = np.sort(samples[i, :])
+            Y_lower_confidence_bound[i] = ordered_samples_i[n_rejected_samples]
+            Y_upper_confidence_bound[i] = ordered_samples_i[-(n_rejected_samples + 1)]
 
         return Y_lower_confidence_bound, Y_upper_confidence_bound
 
