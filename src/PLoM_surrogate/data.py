@@ -1,7 +1,7 @@
 import numpy as np
 
-from PLoM_surrogate.generators import generator_U_sinc
-from PLoM_surrogate.models import model_sinc
+from PLoM_surrogate.generators import generator_U_sinc, generator_E_cantilever, generator_I_cantilever
+from PLoM_surrogate.models import model_sinc, model_cantilever_beam
 from numpy.ma.core import zeros_like
 
 
@@ -29,6 +29,22 @@ def generate_data_sinc(W, t, n_samples):
         data[1:, :, i] = np.tile(W[:, np.newaxis], (1, t.size))
 
     return data
+
+
+def generate_data_cantilever(W, x, t, Fmax, n_samples):
+    """"""
+    U_samples = np.zeros((2, n_samples))
+    E_samples = generator_E_cantilever(n_samples)
+    I_samples = generator_I_cantilever(n_samples)
+    U_samples[0, :] = E_samples
+    U_samples[1, :] = I_samples
+
+    n_y = x.size
+    data = np.zeros((n_y + 1, t.size, n_samples))
+    for i in range(n_samples):
+        U = U_samples[:, i]
+        data[:n_y, :, i] = model_cantilever_beam(W, U, x, t, Fmax)
+        data[-1, :, i] = W[0]
 
 
 class Dataset:

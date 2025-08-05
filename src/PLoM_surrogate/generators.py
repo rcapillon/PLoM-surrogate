@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import truncnorm, beta, multivariate_normal, uniform, Covariance
+from scipy.stats import truncnorm, beta, multivariate_normal, uniform, gamma, Covariance
 from tqdm import tqdm
 
 from PLoM_surrogate.models import model_sinc
@@ -29,15 +29,26 @@ def generator_U_sinc(n_samples):
 
 def generator_E_cantilever(n_samples):
     """"""
+    mean_E = 2.1e11
+    dispersion_coeff = 0.3
+    std = mean_E * dispersion_coeff
+    a = 1 / dispersion_coeff ** 2
+    b = (std ** 2) / mean_E
+    E_samples = gamma.rvs(a, scale=b, size=n_samples)
+    E = np.zeros((1, n_samples))
+    E[0, :] = E_samples
 
+    return E
 
 
 def generator_I_cantilever(n_samples):
     """"""
     D = uniform.rvs(loc=0.5, scale=1., size=n_samples)
-    quadratic_moment_of_area = np.pi * np.power(D, 4) / 64.
+    I_samples = np.pi * np.power(D, 4) / 64.
+    I = np.zeros((1, n_samples))
+    I[0, :] = I_samples
 
-    return quadratic_moment_of_area
+    return I
 
 
 def generator_mat_N(nu, m):
