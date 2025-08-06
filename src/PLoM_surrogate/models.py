@@ -42,7 +42,7 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
                           Fmax: float):
     """
     Quasi-static deflection of a cantilever beam of length 1m, subjected to a downwards concentrated load
-    at a given abscissa.
+    at its free end.
     Source: https://home.engineering.iastate.edu/~shermanp/STAT447/STAT%20Articles/Beam_Deflection_Formulae.pdf
 
     Parameters
