@@ -47,10 +47,9 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
 
     Parameters
     ----------
-    W: Single control parameter, corresponding to the abscissa where the load is applied
-    U: 2-dimensional vector of uncertain parameters.
-        U[0] is the Young's modulus, U[1] is the second moment of area (m^4)
-    x: Abscissa along the beam
+    W: Control parameter, corresponding to the abscissa where the load is applied
+    U: Uncertain parameters, corresponding to the Young's modulus
+    x: Abscissa along the beam, between 0 and 1
     t: List or numpy vector of Nt pseudo-time values between 0 and 1 for which the output is calculated
     Fmax: Constant parameter, corresponding to the maximal value for the load.
         The load evolves linearly with t, reaching Fmax at t=1
@@ -62,8 +61,8 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
     """
     if W.ndim != 1 or W.size != 1:
         raise ValueError('W must be a numpy vector with 1 components.')
-    if U.ndim != 1 or U.size != 2:
-        raise ValueError('U must be a numpy vector with 2 components.')
+    if U.ndim != 1 or U.size != 1:
+        raise ValueError('U must be a numpy vector with 1 components.')
     if isinstance(x, list):
         arr_x = np.array(x)
     elif isinstance(x, np.ndarray) and x.ndim == 1:
@@ -84,10 +83,7 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
         F = arr_t[j] * Fmax
         for i in range(x.size):
             x_i = arr_x[i]
-            if x_i < W[0]:
-                y[i, j] = -F * (x_i ** 2) * (3 * W[0] - x_i) / (6 * U[0] * U[1])
-            else:
-                y[i, j] = -F * (W[0] ** 2) * (3 * x_i - W[0]) / (6 * U[0] * U[1])
+            y[i, j] = -F * (x_i ** 2) * (3 - x_i) / (6 * U[0] * W[0])
 
     return y
 

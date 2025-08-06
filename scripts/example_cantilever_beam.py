@@ -29,10 +29,10 @@ if __name__ == '__main__':
     n_samples_U = 10
     x = np.linspace(0.1, 1., n_Y)
     t = np.linspace(0.1, 1., 10)
-    n_W = 20
+    n_W = 10
     n_samples_tot = n_samples_U * n_W
 
-    W0 = np.linspace(0.1, 1., n_W)
+    W0 = np.power(np.linspace(0.5, 1.5, n_W), 4) * np.pi / 64
     W = np.zeros((1, n_W))
     W[0, :] = W0
 
@@ -77,8 +77,8 @@ if __name__ == '__main__':
     Fac = 20
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
-    M_0 = 250
-    n_MC = 10
+    M_0 = 100
+    n_MC = 3
 
     eps = 3.
     # m = 125
@@ -108,8 +108,6 @@ if __name__ == '__main__':
     plt.grid()
     plt.savefig('./cantilever_mcmc_data.png')
 
-    raise ValueError
-
     ####
     # Create a surrogate model for every time-step, compute a conditional mean and confidence interval, plot results
     print('Computing surrogate model...')
@@ -132,7 +130,7 @@ if __name__ == '__main__':
     ax.plot(x, surrogate_mean, '-k', label='mean')
     ax.plot(x, surrogate_lower_bound, '--g', label='lower confidence bound')
     ax.plot(x, surrogate_upper_bound, '--r', label='upper confidence bound')
-    ax.fill_between(t, ls_surrogate_lower_bound, ls_surrogate_upper_bound, color='cyan')
+    ax.fill_between(x, surrogate_lower_bound, surrogate_upper_bound, color='cyan')
     ax.set_title(f'Surrogate model conditional prediction of deflection\nat last time-step: '
                  f'mean and 95% confidence interval\nW={W_conditional[0]}')
     ax.set_xlabel('x')
