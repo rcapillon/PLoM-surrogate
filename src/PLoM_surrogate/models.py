@@ -88,6 +88,10 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
     return y
 
 
+def model_multivariate_normal_pdf(n_Y, W, U, t):
+    """"""
+
+
 class Surrogate:
     """
     Surrogate model for a probabilistic model parametrized by control parameters. Can be used to generate samples,

@@ -25,7 +25,7 @@ if __name__ == '__main__':
     ####
     # Generate a dataset, plot trajectories, perform PCA on model outputs, then recover model outputs
     # and plot recovered trajectories
-    n_Y = 50
+    n_Y = 10
     n_samples_U = 10
     x = np.linspace(0.1, 1., n_Y)
     t = np.linspace(0.1, 1., 10)
@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
     eps = 3.
     # m = 125
-    m = 40
+    m = 60
     kappa = 1
     mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa, plot_eigvals_name='cantilever')
     mat_a = build_mat_a(mat_g)
