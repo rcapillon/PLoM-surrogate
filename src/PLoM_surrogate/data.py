@@ -1,7 +1,7 @@
 import numpy as np
 
-from PLoM_surrogate.generators import generator_U_sinc, generator_E_cantilever, generator_I_cantilever, generator_U_mnpdf
-from PLoM_surrogate.models import model_sinc, model_cantilever_beam, model_multivariate_normal_pdf
+from PLoM_surrogate.generators import generator_U_sinc, generator_E_cantilever, generator_I_cantilever
+from PLoM_surrogate.models import model_sinc, model_cantilever_beam
 
 
 def generate_data_sinc(W, t, n_samples):
