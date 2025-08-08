@@ -26,15 +26,14 @@ if __name__ == '__main__':
     # Generate a dataset, plot trajectories, perform PCA on model outputs, then recover model outputs
     # and plot recovered trajectories
     n_Y = 10
-    n_samples_U = 10
+    n_samples_U = 20
     x = np.linspace(0.1, 1., n_Y)
     t = np.linspace(0.1, 1., 10)
     n_W = 10
     n_samples_tot = n_samples_U * n_W
 
-    W0 = np.power(np.linspace(0.5, 1.5, n_W), 4) * np.pi / 64
     W = np.zeros((1, n_W))
-    W[0, :] = W0
+    W[0, :] = np.linspace(0.1, 1.0, n_W)
 
     Fmax = 1.5e9
 
@@ -78,9 +77,9 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 100
-    n_MC = 3
+    n_MC = 50
 
-    eps = 3.
+    eps = 1.
     # m = 125
     m = 60
     kappa = 1
@@ -88,7 +87,7 @@ if __name__ == '__main__':
     mat_a = build_mat_a(mat_g)
 
     # Parallel processing
-    n_cpu = 4
+    n_cpu = 6
     pool = Pool(processes=n_cpu)
 
     # MCMC
@@ -97,7 +96,11 @@ if __name__ == '__main__':
     inputs = [(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar)] * n_cpu
 
     for data_MCMC in pool.starmap(generator_ISDE, inputs):
+        for i in range(data_MCMC.shape[-1]):
+            if np.any(data_MCMC[:, :, i] > 0):
+                data_MCMC = np.delete(data_MCMC, i, axis=-1)
         total_data_MCMC = np.concatenate((total_data_MCMC, data_MCMC), axis=-1)
+    print(f'Number of additional realizations: {total_data_MCMC.shape[2]}')
 
     _, ax = plt.subplots()
     for i in range(n_samples_tot):
@@ -112,11 +115,11 @@ if __name__ == '__main__':
     # Create a surrogate model for every time-step, compute a conditional mean and confidence interval, plot results
     print('Computing surrogate model...')
 
-    W_conditional = np.array([0.88])
+    W_conditional = np.array([1.])
     surrogate_model = Surrogate(total_data_MCMC, n_Y, t)
 
     surrogate_n_samples = 10000
-    confidence_level = 0.99
+    confidence_level = 0.95
 
     surrogate_model.compute_surrogate_gkde(t.size - 1)
     surrogate_mean = surrogate_model.compute_conditional_mean(W_conditional, surrogate_n_samples)

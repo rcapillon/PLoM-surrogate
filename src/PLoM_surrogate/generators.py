@@ -30,7 +30,7 @@ def generator_U_sinc(n_samples):
 def generator_E_cantilever(n_samples):
     """"""
     mean_E = 2.1e11
-    dispersion_coeff = 0.5
+    dispersion_coeff = 0.1
     std = mean_E * dispersion_coeff
     a = 1 / dispersion_coeff ** 2
     b = (std ** 2) / mean_E
@@ -41,14 +41,25 @@ def generator_E_cantilever(n_samples):
     return E
 
 
-# def generator_I_cantilever(n_samples):
-#     """"""
-#     D = uniform.rvs(loc=0.5, scale=1.5, size=n_samples)
-#     I_samples = np.pi * np.power(D, 4) / 64.
-#     I = np.zeros((1, n_samples))
-#     I[0, :] = I_samples
-#
-#     return I
+def generator_I_cantilever(n_samples):
+    """"""
+    D = uniform.rvs(loc=0.8, scale=1.2, size=n_samples)
+    I_samples = np.pi * np.power(D, 4) / 64.
+    I = np.zeros((1, n_samples))
+    I[0, :] = I_samples
+
+    return I
+
+
+def generator_U_mnpdf(n_Y, n_samples):
+    """"""
+    n_U = int(n_Y * (n_Y - 1) / 2)
+    U = np.zeros((n_U, n_samples))
+    for i in range(n_U):
+        u_samples = uniform.rvs(loc=0.1, scale=0.8, size=n_samples)
+        U[i, :] = u_samples
+
+    return U
 
 
 def generator_mat_N(nu, m):
@@ -106,6 +117,7 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=
     f_0: damping parameter for the ISDE generator
     M_0: number of burned realizations from the ISDE generator to ensure independent realizations as output
     n_MC: number of additional matrices of realizations concentrated on the same manifold as the training dataset
+    progress_bar: if True, displays a progress bar for the generation of additional realizations
 
     Returns
     -------

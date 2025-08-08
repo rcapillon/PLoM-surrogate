@@ -47,8 +47,8 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
 
     Parameters
     ----------
-    W: Control parameter, corresponding to the abscissa where the load is applied
-    U: Uncertain parameters, corresponding to the Young's modulus
+    W: Control parameter, corresponding to application point of the concentrated load
+    U: Uncertain parameters, corresponding to the Young's modulus and the second moment of area
     x: Abscissa along the beam, between 0 and 1
     t: List or numpy vector of Nt pseudo-time values between 0 and 1 for which the output is calculated
     Fmax: Constant parameter, corresponding to the maximal value for the load.
@@ -61,8 +61,8 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
     """
     if W.ndim != 1 or W.size != 1:
         raise ValueError('W must be a numpy vector with 1 components.')
-    if U.ndim != 1 or U.size != 1:
-        raise ValueError('U must be a numpy vector with 1 components.')
+    if U.ndim != 1 or U.size != 2:
+        raise ValueError('U must be a numpy vector with 2 components.')
     if isinstance(x, list):
         arr_x = np.array(x)
     elif isinstance(x, np.ndarray) and x.ndim == 1:
@@ -83,13 +83,69 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
         F = arr_t[j] * Fmax
         for i in range(x.size):
             x_i = arr_x[i]
-            y[i, j] = -F * (x_i ** 2) * (3 - x_i) / (6 * U[0] * W[0])
+            if x_i <= W[0]:
+                y[i, j] = -F * (x_i ** 2) * (3 * W[0] - x_i) / (6 * U[0] * U[1])
+            else:
+                y[i, j] = -F * (W[0] ** 2) * (3 * x_i - W[0]) / (6 * U[0] * U[1])
 
     return y
 
 
 def model_multivariate_normal_pdf(n_Y, W, U, t):
     """"""
+    covar = 2 * np.eye(n_Y)
+    count = 0
+    for i in range(1, n_Y):
+        for j in range(i):
+            covar[i, j] = U[count]
+            covar[j, i] = U[count]
+            count += 1
+    # covar = 0.5 * (covar + covar.T)
+
+    mean = np.zeros((n_Y, ))
+    for i in range(n_Y):
+        mean[i] = i + 2
+
+    inv_covar = np.linalg.inv(covar)
+    det_covar = np.linalg.det(covar)
+
+    Y = np.zeros((n_Y, t.size))
+    for i in range(t.size):
+        Y[:, i] = (np.exp(-0.5 * np.dot((W - (mean + t[i])), np.dot(inv_covar, (W - (mean + t[i])))))
+                   / np.sqrt(det_covar * (2 * np.pi) ** n_Y))
+
+    return Y
+
+
+class GaussianKde(gkde):
+    # source: https://stackoverflow.com/questions/63812970/scipy-gaussian-kde-matrix-is-not-positive-definite
+    """
+    Drop-in replacement for gaussian_kde that adds the class attribute EPSILON
+    to the covmat eigenvalues, to prevent exceptions due to numerical error.
+    """
+
+    EPSILON = 1e-10  # adjust this at will
+
+    def _compute_covariance(self):
+        """Computes the covariance matrix for each Gaussian kernel using
+        covariance_factor().
+        """
+        self.factor = self.covariance_factor()
+        # Cache covariance and inverse covariance of the data
+        if not hasattr(self, '_data_inv_cov'):
+            self._data_covariance = np.atleast_2d(np.cov(self.dataset, rowvar=1,
+                                                         bias=False,
+                                                         aweights=self.weights))
+            # we're going the easy way here
+            self._data_covariance += self.EPSILON * np.eye(
+                len(self._data_covariance))
+            self._data_inv_cov = np.linalg.inv(self._data_covariance)
+
+        self.covariance = self._data_covariance * self.factor ** 2
+        # self.inv_cov = self._data_inv_cov / self.factor ** 2
+        L = np.linalg.cholesky(self.covariance * 2 * np.pi)
+        self._norm_factor = 2 * np.log(np.diag(L)).sum()  # needed for scipy 1.5.2
+        self.log_det = 2 * np.log(np.diag(L)).sum()  # changed var name on 1.6.2
 
 
 class Surrogate:
@@ -113,7 +169,7 @@ class Surrogate:
     def compute_surrogate_gkde(self, idx_t):
         """"""
         self.idx_t = idx_t
-        self.surrogate_gkde = gkde(self.data[:, idx_t, :], bw_method='silverman')
+        self.surrogate_gkde = GaussianKde(self.data[:, idx_t, :], bw_method='silverman')
 
     def sample(self, n_samples):
         """"""
@@ -126,7 +182,7 @@ class Surrogate:
         samples = self.surrogate_gkde.conditional_resample(n_samples,
                                                            x_cond=W[:, np.newaxis].transpose(),
                                                            dims_cond=list(range(self.n_Y, self.data.shape[0])))
-        samples = np.squeeze(samples, axis=-1)
+        samples = np.squeeze(samples, axis=0).transpose()
         return samples
 
     def compute_conditional_mean(self, W, n_samples):

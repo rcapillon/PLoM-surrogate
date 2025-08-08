@@ -104,6 +104,7 @@ if __name__ == '__main__':
 
     for data_MCMC in pool.starmap(generator_ISDE, inputs):
         total_data_MCMC = np.concatenate((total_data_MCMC, data_MCMC), axis=-1)
+    print(f'Number of additional realizations: {total_data_MCMC.shape[2]}')
 
     _, ax = plt.subplots()
     for i in range(n_samples_tot):
