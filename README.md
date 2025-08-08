@@ -1,5 +1,6 @@
 # PLoM-surrogate
 Tools for constructing a surrogate model for a stochastic numerical model using Probabilistic Learning on Manifolds
+in a small data context.
 
 **Important note**: This code has just recently been made public and is undergoing development and bug-fixing.
 Take it as is. For now, the examples in the script directory should be your go-to to make your own surrogate model.
