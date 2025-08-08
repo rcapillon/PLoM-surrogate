@@ -76,18 +76,18 @@ if __name__ == '__main__':
     Fac = 20
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
-    M_0 = 100
-    n_MC = 10
+    M_0 = 300
+    n_MC = 30
 
-    eps = 1.
+    eps = 0.5
     # m = 125
-    m = 60
+    m = 30
     kappa = 1
     mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa, plot_eigvals_name='cantilever')
     mat_a = build_mat_a(mat_g)
 
     # Parallel processing
-    n_cpu = 6
+    n_cpu = 4
     pool = Pool(processes=n_cpu)
 
     # MCMC
@@ -96,12 +96,12 @@ if __name__ == '__main__':
     inputs = [(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar)] * n_cpu
 
     for data_MCMC in pool.starmap(generator_ISDE, inputs):
-        indices_delete = []
-        for i in range(data_MCMC.shape[-1]):
-            if np.any(data_MCMC[:, :, i] >= 1e-3):
-                indices_delete.append(i)
-        indices_keep = [i for i in range(data_MCMC.shape[-1]) if i not in indices_delete]
-        data_MCMC = data_MCMC[:, :, indices_keep]
+        # indices_delete = []
+        # for i in range(data_MCMC.shape[-1]):
+        #     if np.any(data_MCMC[:, :, i] >= 1e-3):
+        #         indices_delete.append(i)
+        # indices_keep = [i for i in range(data_MCMC.shape[-1]) if i not in indices_delete]
+        # data_MCMC = data_MCMC[:, :, indices_keep]
         total_data_MCMC = np.concatenate((total_data_MCMC, data_MCMC), axis=-1)
     print(f'Number of additional realizations: {total_data_MCMC.shape[2]}')
 
