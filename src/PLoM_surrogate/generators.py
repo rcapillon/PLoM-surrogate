@@ -51,17 +51,6 @@ def generator_I_cantilever(n_samples):
     return I
 
 
-def generator_U_mnpdf(n_Y, n_samples):
-    """"""
-    n_U = int(n_Y * (n_Y - 1) / 2)
-    U = np.zeros((n_U, n_samples))
-    for i in range(n_U):
-        u_samples = uniform.rvs(loc=0.1, scale=0.8, size=n_samples)
-        U[i, :] = u_samples
-
-    return U
-
-
 def generator_mat_N(nu, m):
     """
 

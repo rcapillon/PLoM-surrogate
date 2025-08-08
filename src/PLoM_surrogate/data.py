@@ -30,18 +30,6 @@ def generate_data_sinc(W, t, n_samples):
     return data
 
 
-def generate_data_mnpdf(n_Y, W, t, n_samples):
-    """"""
-    U_samples = generator_U_mnpdf(n_Y, n_samples)
-    data = np.zeros((2 * n_Y, t.size, n_samples))
-    for i in range(n_samples):
-        U = U_samples[:, i]
-        data[:n_Y, :, i] = model_multivariate_normal_pdf(n_Y, W, U, t)
-        data[n_Y:, :, i] = np.tile(W[:, np.newaxis], (1, t.size))
-
-    return data
-
-
 def generate_data_cantilever(W, x, t, Fmax, n_samples):
     """"""
     U_samples = np.zeros((2, n_samples))

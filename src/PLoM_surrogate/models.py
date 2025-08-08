@@ -91,32 +91,6 @@ def model_cantilever_beam(W: np.ndarray, U: np.ndarray,
     return y
 
 
-def model_multivariate_normal_pdf(n_Y, W, U, t):
-    """"""
-    covar = 2 * np.eye(n_Y)
-    count = 0
-    for i in range(1, n_Y):
-        for j in range(i):
-            covar[i, j] = U[count]
-            covar[j, i] = U[count]
-            count += 1
-    # covar = 0.5 * (covar + covar.T)
-
-    mean = np.zeros((n_Y, ))
-    for i in range(n_Y):
-        mean[i] = i + 2
-
-    inv_covar = np.linalg.inv(covar)
-    det_covar = np.linalg.det(covar)
-
-    Y = np.zeros((n_Y, t.size))
-    for i in range(t.size):
-        Y[:, i] = (np.exp(-0.5 * np.dot((W - (mean + t[i])), np.dot(inv_covar, (W - (mean + t[i])))))
-                   / np.sqrt(det_covar * (2 * np.pi) ** n_Y))
-
-    return Y
-
-
 class GaussianKde(gkde):
     # source: https://stackoverflow.com/questions/63812970/scipy-gaussian-kde-matrix-is-not-positive-definite
     """
