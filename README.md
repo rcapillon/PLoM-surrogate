@@ -110,8 +110,12 @@ or the confidence interval lower and upper bounds:
 ```
 surrogate_lower_bound, surrogate_upper_bound = surrogate_model.compute_conditional_confidence_interval(
         W_conditional,
-        surrogate_n_samples,
-        confidence_level)
+        n_s,
+        c_l)
+```
+You can also simply generate additional samples conditioned on the value of the control parameters W:
+```
+new_samples = surrogate_model.conditional_sample(W_conditional, n_s)
 ```
 
 ## Bibliography
