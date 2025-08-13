@@ -189,7 +189,7 @@ if __name__ == '__main__':
     surrogate_model = Surrogate(total_data_MCMC, n_Y)
 
     surrogate_n_samples = 10000
-    confidence_level = 0.99
+    confidence_level = 0.95
     ls_surrogate_mean = []
     ls_surrogate_lower_bound = np.zeros((t.size, ))
     ls_surrogate_upper_bound = np.zeros((t.size, ))
