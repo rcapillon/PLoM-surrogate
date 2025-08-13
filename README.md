@@ -107,7 +107,7 @@ surrogate_mean = surrogate_model.compute_conditional_mean(W_conditional, n_s)
 ```
 or the conditional covariance matrix:
 ```
-surrogate_covar = surrogate_model.compute_conditional_covar(W_conditional, surrogate_n_samples)
+surrogate_covar = surrogate_model.compute_conditional_covar(W_conditional, n_s)
 ```
 or the confidence interval lower and upper bounds:
 ```
