@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import truncnorm, beta, multivariate_normal, Covariance
+from scipy.stats import multivariate_normal, Covariance
 from multiprocessing import Pool
 from tqdm import tqdm
 
