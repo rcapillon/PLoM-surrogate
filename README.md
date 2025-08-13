@@ -78,7 +78,7 @@ Diffusion Maps basis as recommended by [3] in the bibliography.
 If you have selected a number of vectors for the basis, add a 'm' argument at the creation of the generator:
 ```
 generator = Generator(dataset, n_cpu, m=m)
-generator.construct_dmaps_basis()
+generator.construct_dmaps_basis(plot_eigvals_name=plot_name)
 ```
 Then, generate the additional realizations using:
 ```
