@@ -72,8 +72,8 @@ could get from the original small dataset. The algorithm will generate new reali
 being the number of realizations in the original dataset. Thus, choose a 'n_MC' number of realizations chunks to 
 generate, also choose a 'n_cpu' number of processes to use for multithreading. If you want to plot the eigenvalues used
 to construct the reduced Diffusion Maps basis (related to the manifold learning), then add an additional string 
-'plot_name' so the graph is saved on execution. This can help choosing an appropriate number of vectors to keep in the
-Diffusion Maps basis as recommended by [3] in the bibliography. 
+'plot_name' so the graph is saved on execution, otherwise don't include it. This can help choosing an appropriate number
+of vectors to keep in the Diffusion Maps basis as recommended by [3] in the bibliography. 
 
 If you have selected a number of vectors for the basis, add a 'm' argument at the creation of the generator:
 ```
