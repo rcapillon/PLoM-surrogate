@@ -23,7 +23,8 @@ pip install .
 
 ## Running examples
 **Note**: Example scripts are set to open 4 processes for multithreading and take a few minutes to complete, depending
-on the machine used.
+on the machine used. If you want less or more processes to perform the calculation, change the 'n_cpu' variable in the
+code of the examples.
 
 Open a terminal in the examples/ directory of the cloned repository, then you can run either of the two examples using:
 ```
