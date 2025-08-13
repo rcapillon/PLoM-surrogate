@@ -197,7 +197,7 @@ if __name__ == '__main__':
     print('Computing surrogate model...')
 
     W_conditional = np.array([1.])
-    surrogate_model = Surrogate(total_data_MCMC, n_Y, t)
+    surrogate_model = Surrogate(total_data_MCMC, n_Y)
 
     surrogate_n_samples = 10000
     confidence_level = 0.95
