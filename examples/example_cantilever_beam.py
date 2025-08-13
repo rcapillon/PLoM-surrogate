@@ -1,17 +1,12 @@
-import os
-import sys
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
-
 from typing import Union
 import numpy as np
 from scipy.stats import gamma, uniform
 import matplotlib.pyplot as plt
 import time
 
-from PLoM_surrogate.models import Surrogate
-from PLoM_surrogate.generators import Generator
-from PLoM_surrogate.data import Dataset
+from src.PLoM_surrogate.data import Dataset
+from src.PLoM_surrogate.generators import Generator
+from src.PLoM_surrogate.models import Surrogate
 
 
 def model_cantilever_beam(W: np.ndarray, U: np.ndarray,

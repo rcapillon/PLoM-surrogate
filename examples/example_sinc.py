@@ -1,8 +1,3 @@
-import os
-import sys
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
-
 from typing import Union
 import numpy as np
 from scipy.stats import beta, truncnorm
@@ -10,9 +5,9 @@ import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
 
-from PLoM_surrogate.models import Surrogate
-from PLoM_surrogate.generators import Generator
-from PLoM_surrogate.data import Dataset
+from src.PLoM_surrogate.data import Dataset
+from src.PLoM_surrogate.generators import Generator
+from src.PLoM_surrogate.models import Surrogate
 
 
 def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
@@ -195,14 +190,14 @@ if __name__ == '__main__':
 
     surrogate_n_samples = 10000
     confidence_level = 0.99
-    ls_surrogate_mean = np.zeros((t.size, ))
+    ls_surrogate_mean = []
     ls_surrogate_lower_bound = np.zeros((t.size, ))
     ls_surrogate_upper_bound = np.zeros((t.size, ))
 
     for i in tqdm(range(t.size)):
         surrogate_model.compute_surrogate_gkde(i)
         mean_i = surrogate_model.compute_conditional_mean(W_conditional, surrogate_n_samples)
-        ls_surrogate_mean[i] = mean_i
+        ls_surrogate_mean.append(mean_i)
         lower_bound, upper_bound = surrogate_model.compute_conditional_confidence_interval(W_conditional,
                                                                                            surrogate_n_samples,
                                                                                            confidence_level)
