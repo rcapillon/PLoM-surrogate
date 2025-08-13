@@ -80,6 +80,9 @@ If you have selected a number of vectors for the basis, add a 'm' argument at th
 generator = Generator(dataset, n_cpu, m=m)
 generator.construct_dmaps_basis(plot_eigvals_name=plot_name)
 ```
+This will generate the plot of the eigenvalues used to construct the reduced Diffusion Maps basis and can help you
+choose the value for 'm'.
+
 Then, generate the additional realizations using:
 ```
 additional_data = generator.generate_realizations(n_MC)
