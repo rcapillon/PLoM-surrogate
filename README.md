@@ -32,6 +32,13 @@ python3 example_cantilever_beam.py
 ```
 This will produce plots saved in the directory from which the example scripts are ran.
 
+### Example: Sinc function
+This example uses a custom Sinc function (single output) with two control parameters and two random parameters.
+
+|                                                   Original data                                                   |                                                Additional data                                                |                                                     Surrogate model                                                      |
+|:-----------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------:|
+| <img src="https://github.com/rcapillon/PLoM-surrogate/blob/main/readme_files/sinc_original_data.png" width="400"> | <img src="https://github.com/rcapillon/PLoM-surrogate/blob/main/readme_files/sinc_mcmc_data.png" width="400"> | <img src="https://github.com/rcapillon/PLoM-surrogate/blob/main/readme_files/sinc_surrogate_timeseries.png" width="400"> |
+
 ## Usage
 First, you will need the following imports:
 ```
