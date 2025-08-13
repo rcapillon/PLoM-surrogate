@@ -49,7 +49,10 @@ from PLoM_surrogate.models import Surrogate
 ```
 Arrange your data in an array with shape (n_outputs + n_control, n_time, N), where 'n_outputs' is the number of 
 components in the output vector at each time-step, 'n_control' is the number of control parameters, n_time is the number
-of time-steps and N is the number of realizations (number of data points).
+of time-steps and N is the number of realizations (number of data points). Along the first dimension, the user must 
+first put the outputs of the random model, then the values for the control parameters, copied for each time-step if
+these are not time-dependent (note that you can have the control parameters be random variables themselves, just
+organize the data correctly in the array).
 
 Then, create a Dataset object with:
 ```
