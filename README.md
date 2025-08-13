@@ -2,8 +2,106 @@
 Tools for constructing a surrogate model for a stochastic numerical model using Probabilistic Learning on Manifolds
 in a small data context.
 
-**Important note**: This code has just recently been made public and is undergoing development and bug-fixing.
-Take it as is. For now, the examples in the script directory should be your go-to to make your own surrogate model.
+This package handles multi-dimensional data indexed by time (time series) or a pseudo-time (e.g. frequency) and 
+parametrized by a number of deterministic control parameters.
+
+It is appropriate to handle small datasets, learning the manifold structure on which the dataset is
+concentrated and generating additional data points that lie on the learned manifold. It can then create a surrogate
+model for a specific time-step (or all time-steps if one desires), computing new samples conditionally to a choice
+of specific control parameters, computing the conditional mean, covariance or confidence interval.
+
+## Installation
+First, clone the repository in the folder of your choice using:
+```
+git clone git@github.com:rcapillon/PLoM-surrogate.git
+```
+Then, activate the virtual environment for your project and install this package and its requirements with:
+```
+cd PLoM-surrogate/
+pip install .
+```
+
+## Running examples
+Open a terminal in the examples/ directory of the cloned repository, then you can run either of the two examples using:
+```
+python3 example_sinc.py
+```
+or
+```
+python3 example_cantilever_beam.py
+```
+This will produce plots saved in the directory from which the example scripts are ran.
+
+## Usage
+First, you will need the following imports:
+```
+from PLoM_surrogate.data import Dataset
+from PLoM_surrogate.generators import Generator
+from PLoM_surrogate.models import Surrogate
+```
+Arrange your data in an array with shape (n_outputs + n_control, n_time, N), where 'n_outputs' is the number of 
+components in the output vector at each time-step, 'n_control' is the number of control parameters, n_time is the number
+of time-steps and N is the number of realizations (number of data points).
+
+Then, create a Dataset object with:
+```
+dataset = Dataset(data, n_outputs)
+```
+where 'data' is the data array described above.
+
+The method requires to perform PCA on outputs and then again on the whole dataset, so, choose a number of principal 
+components for the outputs, 'n_q', and do:
+```
+dataset.pca_on_Y(n_q)
+dataset.full_pca_on_X()
+```
+
+Now, the dataset is ready in order to generate additional realizations, used to build a finer surrogate model than one
+could get from the original small dataset. The algorithm will generate new realizations in chunks of N realizations, N
+being the number of realizations in the original dataset. Thus, choose a 'n_MC' number of realizations chunks to 
+generate, also choose a 'n_cpu' number of processes to use for multithreading. If you want to plot the eigenvalues used
+to construct the reduced Diffusion Maps basis (related to the manifold learning), then add an additional string 
+'plot_name' so the graph is saved on execution. This can help choosing an appropriate number of vectors to keep in the
+Diffusion Maps basis as recommended by [3] in the bibliography. 
+
+If you have selected a number of vectors for the basis, add a 'm' argument at the creation of the generator:
+```
+generator = Generator(dataset, n_cpu, m=m)
+generator.construct_dmaps_basis()
+```
+Then, generate the additional realizations using:
+```
+additional_data = generator.generate_realizations(n_MC)
+```
+The additional data will have the same shape as the data array arranged originally to create the dataset.
+
+Finally, you can create a surrogate model with:
+```
+surrogate_model = Surrogate(total_data_MCMC, n_Y)
+```
+Create a numpy vector with the conditional values you want to use for the control parameters 'W_conditional'.
+Also, choose a time-step index 'idx_t' picking the exact time-step you want to calculate quantities for then do:
+```
+surrogate_model.compute_surrogate_gkde(idx_t)
+```
+Finally, choose a number of samples 'n_s' used for estimations and a confidence level 'c_l' (e.g. c_l = 0.95) if you 
+want to calculate the confidence interval.
+
+You can then compute the conditional mean:
+```
+surrogate_mean = surrogate_model.compute_conditional_mean(W_conditional, n_s)
+```
+or the conditional covariance matrix:
+```
+surrogate_covar = surrogate_model.compute_conditional_covar(W_conditional, surrogate_n_samples)
+```
+or the confidence interval lower and upper bounds:
+```
+surrogate_lower_bound, surrogate_upper_bound = surrogate_model.compute_conditional_confidence_interval(
+        W_conditional,
+        surrogate_n_samples,
+        confidence_level)
+```
 
 ## Bibliography
 [1] C. Soize, R. Ghanem, 
