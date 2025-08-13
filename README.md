@@ -33,7 +33,8 @@ python3 example_cantilever_beam.py
 This will produce plots saved in the directory from which the example scripts are ran.
 
 ### Example: Sinc function
-This example uses a custom Sinc function (single output) with two control parameters and two random parameters.
+This example uses a custom Sinc function (single output) with two control parameters and two random parameters. 
+The original dataset contains 90 random time series.
 
 |                                                   Original data                                                   |                                                Additional data                                                |                                                     Surrogate model                                                      |
 |:-----------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------:|
