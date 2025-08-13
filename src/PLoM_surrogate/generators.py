@@ -1,54 +1,91 @@
 import numpy as np
-from scipy.stats import truncnorm, beta, multivariate_normal, uniform, gamma, Covariance
+from scipy.stats import truncnorm, beta, multivariate_normal, Covariance
+from multiprocessing import Pool
 from tqdm import tqdm
 
-from PLoM_surrogate.models import model_sinc
-from PLoM_surrogate.dmaps import compute_L
+from PLoM_surrogate.dmaps import construct_dmaps_basis, build_mat_a
 
 
-def generator_U_sinc(n_samples):
+def compute_q(u, mat_eta):
     """
 
     Parameters
     ----------
-    n_samples: number of desired samples
+    u: vector-valued realization of stochastic process U at current step
+    mat_eta: matrix whose columns are realizations of a vector random variable
 
     Returns
     -------
-    mat_U: 2 x n_samples matrix of realizations of random vector U
+    q: value used to calculate the potential used in the ISDE generator
 
     """
-    u1 = beta.rvs(2, 5, size=n_samples) + 6
-    u0 = truncnorm.rvs(-2, 2, loc=1, scale=1., size=n_samples) + u1 - 6.
-    U = np.zeros((2, n_samples))
-    U[0, :] = u0
-    U[1, :] = u1
+    nu = mat_eta.shape[0]
+    N = mat_eta.shape[1]
 
-    return U
+    s_nu = np.power(4 / (N * (2 + nu)), 1 / (nu + 4))
+    s_hat_nu = s_nu / (np.sqrt(s_nu ** 2 + ((N - 1) / N)))
 
+    q = 0.
+    for i in range(N):
+        q += np.exp(-np.linalg.norm(s_hat_nu * mat_eta[:, i] / s_nu - u) ** 2 / (2 * s_hat_nu ** 2))
+    q /= N
 
-def generator_E_cantilever(n_samples):
-    """"""
-    mean_E = 2.1e11
-    dispersion_coeff = 0.1
-    std = mean_E * dispersion_coeff
-    a = 1 / dispersion_coeff ** 2
-    b = (std ** 2) / mean_E
-    E_samples = gamma.rvs(a, scale=b, size=n_samples)
-    E = np.zeros((1, n_samples))
-    E[0, :] = E_samples
-
-    return E
+    return q
 
 
-def generator_I_cantilever(n_samples):
-    """"""
-    D = uniform.rvs(loc=0.8, scale=1.2, size=n_samples)
-    I_samples = np.pi * np.power(D, 4) / 64.
-    I = np.zeros((1, n_samples))
-    I[0, :] = I_samples
+def compute_grad_q(u, mat_eta):
+    """
 
-    return I
+    Parameters
+    ----------
+    u: vector-valued realization of stochastic process U at current step
+    mat_eta: matrix whose columns are realizations of a vector random variable
+
+    Returns
+    -------
+    grad_q: gradient of the value used to calculate the potential used in the ISDE generator
+
+    """
+    nu = mat_eta.shape[0]
+    N = mat_eta.shape[1]
+
+    s_nu = np.power(4 / (N * (2 + nu)), 1 / (nu + 4))
+    s_hat_nu = s_nu / (np.sqrt(s_nu ** 2 + ((N - 1) / N)))
+
+    grad_q = np.zeros((nu, ))
+    for i in range(N):
+        term_1 = (s_hat_nu * mat_eta[:, i] / s_nu) - u
+        term_2 = np.exp(-np.linalg.norm(term_1) ** 2 / (2 * s_hat_nu ** 2))
+        grad_q += term_1 * term_2
+    grad_q /= N * s_hat_nu ** 2
+
+    return grad_q
+
+
+def compute_L(mat_u, mat_eta):
+    """
+
+    Parameters
+    ----------
+    mat_u: matrix whose columns are vector-valued realizations of stochastic process U at current step
+    mat_eta: matrix whose columns are realizations of a vector random variable
+
+    Returns
+    -------
+    mat_L: value of matrix L used in the ISDE generator
+
+    """
+    nu = mat_eta.shape[0]
+    N = mat_eta.shape[1]
+
+    mat_L = np.zeros((nu, N))
+    for i in range(N):
+        u = mat_u[:, i]
+        q = compute_q(u, mat_eta)
+        grad_q = compute_grad_q(u, mat_eta)
+        mat_L[:, i] = grad_q / q
+
+    return mat_L
 
 
 def generator_mat_N(nu, m):
@@ -149,3 +186,46 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=
     data_MCMC = dataset.recover_data(X_MCMC)
 
     return data_MCMC
+
+
+class Generator:
+    def __init__(self, dataset, n_cpu,
+                 Fac=20, delta_r=None, f_0=1.5, M_0=100, eps=3., kappa=1, m=30):
+        """"""
+        self.dataset = dataset
+        self.n_cpu = n_cpu
+        self.Fac = 20
+        if delta_r is None:
+            s_nu = np.power(4 / (self.dataset.H_data.shape[1] * (2 + dataset.H_data.shape[0])),
+                            1 / (self.dataset.H_data.shape[0] + 4))
+            s_hat_nu = s_nu / (np.sqrt(s_nu ** 2 + ((self.dataset.H_data.shape[1] - 1) / self.dataset.H_data.shape[1])))
+            self.delta_r = 2 * np.pi * s_hat_nu / Fac
+        else:
+            self.delta_r = delta_r
+        self.f_0 = f_0
+        self.M_0 = M_0
+        self.eps = eps
+        self.kappa = kappa
+        self.m = m
+
+        self.mat_g = None
+        self.mat_a = None
+        
+    def construct_dmaps_basis(self, plot_eigvals_name=None):
+        """"""
+        self.mat_g = construct_dmaps_basis(self.dataset.H_data, self.eps, self.m, self.kappa,
+                                           plot_eigvals_name=plot_eigvals_name)
+        self.mat_a = build_mat_a(self.mat_g)
+
+    def generate_realizations(self, n_MC):
+        """"""
+        pool = Pool(processes=self.n_cpu)
+        total_data_MCMC = np.empty((self.dataset.dim, self.dataset.n_t, 0))
+        progress_bar = True
+        inputs = ([(self.dataset, self.mat_a, self.mat_g, self.delta_r, self.f_0, self.M_0, n_MC, progress_bar)]
+                  * self.n_cpu)
+
+        for data_MCMC in pool.starmap(generator_ISDE, inputs):
+            total_data_MCMC = np.concatenate((total_data_MCMC, data_MCMC), axis=-1)
+
+        return total_data_MCMC
