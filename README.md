@@ -3,7 +3,7 @@ Tools for constructing a surrogate model for a stochastic numerical model using 
 in a small data context.
 
 This package handles multi-dimensional data indexed by time (time series) or a pseudo-time (e.g. frequency) and 
-parametrized by a number of deterministic control parameters.
+parametrized by a number of deterministic or random control parameters.
 
 It is appropriate to handle small datasets, learning the manifold structure on which the dataset is
 concentrated and generating additional data points that lie on the learned manifold. It can then create a surrogate
@@ -130,3 +130,8 @@ https://doi.org/10.1016/j.cma.2021.113777
 [3] C. Soize, R. Ghanem,
 Data-driven probability concentration and sampling on manifold, Journal of Computational Physics, 2016,
 https://doi.org/10.1016/j.jcp.2016.05.044
+
+**Note**: this package does not implement incomplete observation of the output as in [1] and instead assumes that the
+whole response of the model is known for every realization. Also, the original dataset is not constrained by an extra
+dataset which may come from experimental data as in [2]. Reference [2] was used to implement the handling of time (or 
+pseudo-time dependent data).
