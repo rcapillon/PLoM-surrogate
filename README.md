@@ -22,6 +22,9 @@ pip install .
 ```
 
 ## Running examples
+**Note**: Example scripts are set to open 4 processes for multithreading and take a few minutes to complete, depending
+on the machine used.
+
 Open a terminal in the examples/ directory of the cloned repository, then you can run either of the two examples using:
 ```
 python3 example_sinc.py
