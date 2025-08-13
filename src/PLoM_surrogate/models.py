@@ -42,16 +42,12 @@ class Surrogate:
     or estimate lower and upper confidence bounds, for a given value of time (or pseudo-time e.g. frequency)
     and for given values of the control parameters.
     """
-    def __init__(self, data, n_Y, vec_t):
+    def __init__(self, data, n_Y):
         self.data = data
         self.n_Y = n_Y
-        self.vec_t = vec_t
 
         self.idx_t = None
-        self.W = None
         self.surrogate_gkde = None
-        self.lower_confidence_bound = None
-        self.upper_confidence_bound = None
         self.conditional_marginal_pdf_gkde = None
 
     def compute_surrogate_gkde(self, idx_t):
