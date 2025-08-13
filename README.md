@@ -134,4 +134,4 @@ https://doi.org/10.1016/j.jcp.2016.05.044
 **Note**: this package does not implement incomplete observation of the output as in [1] and instead assumes that the
 whole response of the model is known for every realization. Also, the original dataset is not constrained by an extra
 dataset which may come from experimental data as in [2]. Reference [2] was used to implement the handling of time (or 
-pseudo-time dependent data).
+pseudo-time) dependent data.
