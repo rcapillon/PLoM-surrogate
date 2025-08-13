@@ -88,7 +88,7 @@ The additional data will have the same shape as the data array arranged original
 
 Finally, you can create a surrogate model with:
 ```
-surrogate_model = Surrogate(total_data_MCMC, n_Y)
+surrogate_model = Surrogate(additional_data, n_Y)
 ```
 Create a numpy vector with the conditional values you want to use for the control parameters 'W_conditional'.
 Also, choose a time-step index 'idx_t' picking the exact time-step you want to calculate quantities for then do:
