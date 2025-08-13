@@ -3,16 +3,94 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
 
+from typing import Union
 import numpy as np
+from scipy.stats import beta, truncnorm
 import matplotlib.pyplot as plt
 import time
-from multiprocessing import Pool
 from tqdm import tqdm
 
-from PLoM_surrogate.models import model_sinc, Surrogate
-from PLoM_surrogate.generators import generator_ISDE
-from PLoM_surrogate.data import generate_data_sinc, Dataset
-from PLoM_surrogate.dmaps import construct_dmaps_basis, build_mat_a
+from PLoM_surrogate.models import Surrogate
+from PLoM_surrogate.generators import Generator
+from PLoM_surrogate.data import Dataset
+
+
+def model_sinc(W: np.ndarray, U: np.ndarray, t: Union[list, np.ndarray]):
+    """
+    Simple model generating a scalar time series from 2 control and 2 uncertain parameters.
+
+    Parameters
+    ----------
+    W: 2-dimensional vector of control parameters
+    U: 2-dimensional vector of uncertain parameters
+    t: List or numpy vector of Nt time values for which the output is calculated
+
+    Returns
+    -------
+    Y: Nt-dimensional vector of outputs (time series)
+
+    """
+    if W.ndim != 1 or W.size != 2:
+        raise ValueError('W must be a numpy vector with 2 components.')
+    if U.ndim != 1 or U.size != 2:
+        raise ValueError('U must be a numpy vector with 2 components.')
+    if isinstance(t, list):
+        arr_t = np.array(t)
+    elif isinstance(t, np.ndarray) and t.ndim == 1:
+        arr_t = t
+    else:
+        raise TypeError('Argument t must be a list or a numpy vector.')
+
+    Y = W[0] * np.sinc((2 * arr_t + U[0]) / U[1]) + W[1]
+
+    return Y
+
+
+def generator_U_sinc(n_samples):
+    """
+
+    Parameters
+    ----------
+    n_samples: number of desired samples
+
+    Returns
+    -------
+    mat_U: 2 x n_samples matrix of realizations of random vector U
+
+    """
+    u1 = beta.rvs(2, 5, size=n_samples) + 6
+    u0 = truncnorm.rvs(-2, 2, loc=1, scale=1., size=n_samples) + u1 - 6.
+    U = np.zeros((2, n_samples))
+    U[0, :] = u0
+    U[1, :] = u1
+
+    return U
+
+
+def generate_data_sinc(W, t, n_samples):
+    """
+
+    Parameters
+    ----------
+    W: 2-dimensional numpy vector of control parameter values
+    t: List or numpy vector of Nt time values for which the output is calculated
+    n_samples: Number of desired sample
+
+    Returns
+    -------
+    dataset: 3xNtxn_samples numpy array of realisations of the couple (Y, W). That is, along the first axis, the first
+    component is a realization of Y (output of the model) at a given timestep, and the next two components are
+    the values of the control parameters used to generate the Y time series data.
+
+    """
+    U_samples = generator_U_sinc(n_samples)
+    data = np.zeros((3, t.size, n_samples))
+    for i in range(n_samples):
+        U = U_samples[:, i]
+        data[0, :, i] = model_sinc(W, U, t)
+        data[1:, :, i] = np.tile(W[:, np.newaxis], (1, t.size))
+
+    return data
 
 
 if __name__ == '__main__':
@@ -78,6 +156,11 @@ if __name__ == '__main__':
     # Generate a large number of additional realizations from an original dataset
     # using diffusion maps basis and the ISDE generator
 
+    # Diffusion Maps basis parameters
+    eps = 3.
+    m = 70
+    kappa = 1
+    # ISDE generator parameters
     s_nu = np.power(4 / (n_samples_tot * (2 + dataset.H_data.shape[0])), 1 / (dataset.H_data.shape[0] + 4))
     s_hat_nu = s_nu / (np.sqrt(s_nu ** 2 + ((n_samples_tot - 1) / n_samples_tot)))
     Fac = 20
@@ -85,25 +168,13 @@ if __name__ == '__main__':
     f_0 = 1.5
     M_0 = 100
     n_MC = 60
-
-    eps = 3.
-    # m = 125
-    m = 70
-    kappa = 1
-    mat_g = construct_dmaps_basis(dataset.H_data, eps, m, kappa, plot_eigvals_name='sinc')
-    mat_a = build_mat_a(mat_g)
-
-    # Parallel processing
+    # Parallel processing parameters
     n_cpu = 4
-    pool = Pool(processes=n_cpu)
 
-    # MCMC
-    total_data_MCMC = np.empty((n_Y + W.shape[0], t.size, 0))
-    progress_bar = True
-    inputs = [(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar)] * n_cpu
-
-    for data_MCMC in pool.starmap(generator_ISDE, inputs):
-        total_data_MCMC = np.concatenate((total_data_MCMC, data_MCMC), axis=-1)
+    print('Generating additional realizations...')
+    generator = Generator(dataset, n_cpu, Fac, delta_r, f_0, M_0, eps, kappa, m)
+    generator.construct_dmaps_basis(plot_eigvals_name='cantilever')
+    total_data_MCMC = generator.generate_realizations(n_MC)
     print(f'Number of additional realizations: {total_data_MCMC.shape[2]}')
 
     _, ax = plt.subplots()
@@ -119,21 +190,19 @@ if __name__ == '__main__':
     # Create a surrogate model for every time-step, compute a conditional mean and confidence interval, plot results
     print('Computing surrogate model...')
 
-    # W_conditional = np.array([2.5, 0.5])
     W_conditional = np.array([2.25, 0.75])
-    # W_conditional = np.array([2., 1.])
     surrogate_model = Surrogate(total_data_MCMC, n_Y, t)
 
     surrogate_n_samples = 10000
     confidence_level = 0.99
-    ls_surrogate_mean = []
+    ls_surrogate_mean = np.zeros((t.size, ))
     ls_surrogate_lower_bound = np.zeros((t.size, ))
     ls_surrogate_upper_bound = np.zeros((t.size, ))
 
     for i in tqdm(range(t.size)):
         surrogate_model.compute_surrogate_gkde(i)
         mean_i = surrogate_model.compute_conditional_mean(W_conditional, surrogate_n_samples)
-        ls_surrogate_mean.append(mean_i)
+        ls_surrogate_mean[i] = mean_i
         lower_bound, upper_bound = surrogate_model.compute_conditional_confidence_interval(W_conditional,
                                                                                            surrogate_n_samples,
                                                                                            confidence_level)
