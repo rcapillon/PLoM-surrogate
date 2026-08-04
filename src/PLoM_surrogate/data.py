@@ -108,6 +108,9 @@ class Dataset:
 
         eigvals, eigvects = np.linalg.eig(mat_covar)
 
+        eigvals = np.real(eigvals)
+        eigvects = np.real(eigvects)
+
         inds_keep = eigvals > 1e-9
         eigvals = eigvals[inds_keep]
         eigvects = eigvects[:, inds_keep]
