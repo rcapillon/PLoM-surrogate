@@ -3,7 +3,7 @@ from scipy.stats import multivariate_normal, Covariance
 from multiprocessing import Pool
 from tqdm import tqdm
 
-from PLoM_surrogate.dmaps import construct_dmaps_basis, build_mat_a
+from .dmaps import construct_dmaps_basis, build_mat_a
 
 
 def compute_q(u, mat_eta):
