@@ -132,7 +132,9 @@ def construct_dmaps_basis(mat_eta, eps, m, kappa, plot_eigvals_name=None):
 
 
 def build_mat_a(mat_g):
-    """"""
+    """
+    Builds the matrix a used to project on the diffusion maps basis
+    """
     inv_gTg = np.linalg.inv(np.dot(mat_g.T, mat_g))
     mat_a = np.dot(mat_g, inv_gTg)
 

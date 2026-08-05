@@ -30,6 +30,9 @@ class Dataset:
         self.H_data = None
 
     def scale_data_wrt_realizations(self):
+        """
+        Scales the data according to the range of realizations
+        """
         scaled_data = np.zeros((self.dim, self.n_t, self.n_r))
         for i in range(self.dim):
             for j in range(self.n_t):
@@ -41,6 +44,9 @@ class Dataset:
         return scaled_data
 
     def unscale_data_wrt_realizations(self, scaled_data):
+        """
+        Undoes the scaling
+        """
         unscaled_data = np.zeros((self.dim, self.n_t, scaled_data.shape[2]))
         for i in range(self.dim):
             for j in range(self.n_t):
