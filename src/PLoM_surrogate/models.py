@@ -41,79 +41,62 @@ class GaussianKde(gaussian_kde):
             cond_values: np.ndarray,
     ) -> np.ndarray:
         """
-        Échantillonnage conditionnel depuis une KDE gaussienne multivariée.
-
-        La KDE est une mixture de gaussiennes (une par point du dataset).
-        La distribution conditionnelle est elle aussi une mixture de gaussiennes,
-        dont les poids et paramètres sont calculés analytiquement.
+        Conditional sampling for gaussian kernel density estimation.
 
         Parameters
         ----------
         cond_idx : list[int]
-            Indices des variables conditionnantes (ex: [2, 3] pour X3 et X4).
+            Indices of conditioning variables (ex: [2, 3] for X3 and X4).
         cond_values : np.ndarray
-            Valeurs observées des variables conditionnantes, de forme (len(cond_idx),).
+            Observed values for conditioning variables, of shape (len(cond_idx),).
         n_samples : int
-            Nombre d'échantillons à générer.
+            Number of samples to generate.
 
         Returns
         -------
         np.ndarray
-            Échantillons des variables libres, de forme (n_samples, len(free_idx)).
+            Samples of the free variables, of shape (len(free_idx), n_samples).
         """
         d, n = self.dataset.shape
         cond_idx = list(cond_idx)
         free_idx = [i for i in range(d) if i not in cond_idx]
 
-        # --- Matrice de covariance du bandwidth (commune à tous les composants) ---
         H = self.covariance  # (d, d)
 
-        # Blocs de la matrice de covariance
-        H_ff = H[np.ix_(free_idx, free_idx)]  # Σ_ff
-        H_cc = H[np.ix_(cond_idx, cond_idx)]  # Σ_cc
-        H_fc = H[np.ix_(free_idx, cond_idx)]  # Σ_fc
+        # Covariance matrix blocks
+        H_ff = H[np.ix_(free_idx, free_idx)]
+        H_cc = H[np.ix_(cond_idx, cond_idx)]
+        H_fc = H[np.ix_(free_idx, cond_idx)]
 
-        # Covariance conditionnelle (identique pour tous les composants)
-        # Σ_ff|cc = Σ_ff - Σ_fc @ Σ_cc^{-1} @ Σ_cf
-        # On résout Σ_cc @ A = Σ_cf  =>  A = Σ_cc^{-1} Σ_cf
+        # Conditional covariance
         A = solve(H_cc, H_fc.T, assume_a="pos")  # (len_cond, len_free)
-        cov_cond = H_ff - H_fc @ A  # (len_free, len_free) — inchangé ✓
+        cov_cond = H_ff - H_fc @ A  # (len_free, len_free)
 
-        # Précompute H_fc @ H_cc⁻¹ = A.T  →  forme (len_free, len_cond)
         B = A.T
 
-        # --- Calcul des poids de chaque composant ---
-        # w_i ∝ p_marginal(x_cond | composant i) = N(x_cond ; mu_cond_i, H_cc)
         dataset_cond = self.dataset[cond_idx, :]  # (len_cond, n)
         residuals = cond_values[:, None] - dataset_cond  # (len_cond, n)
 
-        # Log-densité de chaque composant marginalisé sur les variables conditionnantes
+        # Log-density of each marginal component on the conditioning variables
         log_weights = multivariate_normal.logpdf(
             residuals.T,  # (n, len_cond)
             mean=np.zeros(len(cond_idx)),
             cov=H_cc,
         )
-        # Stabilisation numérique et normalisation
+        # Numerical stabilisation and normalization
         log_weights -= log_weights.max()
         weights = np.exp(log_weights)
         weights /= weights.sum()
 
-        # --- Génération des échantillons ---
+        # --- Sample generation ---
         samples = np.empty((n_samples, len(free_idx)))
         dataset_free = self.dataset[free_idx, :]  # (len_free, n)
 
-        # Tirage vectorisé des composants
         chosen = np.random.choice(n, size=n_samples, p=weights)
 
-        # --- Génération des échantillons ---
         for k, i in enumerate(chosen):
             mu_free_i = dataset_free[:, i]
             delta = cond_values - dataset_cond[:, i]  # (len_cond,)
-
-            # Avant (bugué) : H_fc @ (A @ delta)
-            #   = (len_free, len_cond) @ [(len_cond, len_free) @ (len_cond,)]  💥
-            # Après (correct) : B @ delta
-            #   = (len_free, len_cond) @ (len_cond,)  →  (len_free,)          ✓
             mean_cond = mu_free_i + B @ delta
 
             samples[k] = np.random.multivariate_normal(mean_cond, cov_cond)
