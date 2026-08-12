@@ -194,7 +194,7 @@ class Generator:
         """"""
         self.dataset = dataset
         self.n_cpu = n_cpu
-        self.Fac = 20
+        self.Fac = Fac
         if delta_r is None:
             s_nu = np.power(4 / (self.dataset.H_data.shape[1] * (2 + dataset.H_data.shape[0])),
                             1 / (self.dataset.H_data.shape[0] + 4))
