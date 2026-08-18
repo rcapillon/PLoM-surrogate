@@ -197,7 +197,7 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=
                     bool_accept = True
             if bool_accept:
                 data_MCMC_with_rejection = np.concatenate((data_MCMC_with_rejection, data), axis=-1)
-
+        return data_MCMC_with_rejection
     elif reject_functions is not None and len(reject_functions) != data_MCMC.shape[0]:
         raise Warning('Incoherent number of reject functions, rejection was not applied.')
 
