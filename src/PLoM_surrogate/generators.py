@@ -129,7 +129,7 @@ def generator_Delta_Wiener(nu, N, delta_r):
     return mat_Delta_Wiener
 
 
-def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=True):
+def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=True, reject_functions=None):
     """
     Generator for additional realizations of a vector random variable from initial sample matrix mat_eta,
     using the reduced diffusion maps basis
@@ -144,6 +144,7 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=
     M_0: number of burned realizations from the ISDE generator to ensure independent realizations as output
     n_MC: number of additional matrices of realizations concentrated on the same manifold as the training dataset
     progress_bar: if True, displays a progress bar for the generation of additional realizations
+    reject_functions: list of functions that return True for every value that belongs to a support function
 
     Returns
     -------
@@ -185,12 +186,28 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=
     X_MCMC = dataset.recover_X(mat_eta_MC)
     data_MCMC = dataset.recover_data(X_MCMC)
 
+    if reject_functions is not None and len(reject_functions) == data_MCMC.shape[0]:
+        print('Applying rejection to generated data...')
+        data_MCMC_with_rejection = np.empty((dataset.shape[0], dataset.shape[1], 0))
+        for i in range(data_MCMC.shape[2]):
+            data = data_MCMC[:, :, i]
+            bool_accept = False
+            for j in range(data_MCMC.shape[0]):
+                if np.all(reject_functions[j](data[j, :])):
+                    bool_accept = True
+            if bool_accept:
+                data_MCMC_with_rejection = np.concatenate((data_MCMC_with_rejection, data), axis=-1)
+
+    elif reject_functions is not None and len(reject_functions) != data_MCMC.shape[0]:
+        raise Warning('Incoherent number of reject functions, rejection was not applied.')
+
     return data_MCMC
 
 
 class Generator:
     def __init__(self, dataset, n_cpu,
-                 Fac=20, delta_r=None, f_0=1.5, M_0=100, eps=3., kappa=1, m=30):
+                 Fac=20, delta_r=None, f_0=1.5, M_0=100, eps=3., kappa=1, m=30,
+                 reject_functions=None):
         """"""
         self.dataset = dataset
         self.n_cpu = n_cpu
@@ -207,6 +224,8 @@ class Generator:
         self.eps = eps
         self.kappa = kappa
         self.m = m
+
+        self.reject_functions = reject_functions
 
         self.mat_g = None
         self.mat_a = None
