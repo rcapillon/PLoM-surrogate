@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import time
 
 from src.PLoM_surrogate.data import Dataset
+from src.PLoM_surrogate.supports import support_Rplus, support_Rminus
 from src.PLoM_surrogate.generators import Generator
 from src.PLoM_surrogate.models import Surrogate
 
@@ -172,12 +173,15 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 300
-    n_MC = 20
+    n_MC = 5000
+    # support function list
+    accept_functions = [support_Rminus] * n_Y
+    accept_functions.append(support_Rplus)
     # Parallel processing parameters
     n_cpu = 4
 
     print('Generating additional realizations...')
-    generator = Generator(dataset, n_cpu, Fac, delta_r, f_0, M_0, eps, kappa, m)
+    generator = Generator(dataset, n_cpu, Fac, delta_r, f_0, M_0, eps, kappa, m, accept_functions)
     generator.construct_dmaps_basis(plot_eigvals_name='cantilever')
     total_data_MCMC = generator.generate_realizations(n_MC)
     print(f'Number of additional realizations: {total_data_MCMC.shape[2]}')

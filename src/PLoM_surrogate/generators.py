@@ -181,8 +181,8 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, accept_functions=No
     data_MCMC = dataset.recover_data(X_MCMC)
 
     if accept_functions is not None and len(accept_functions) == data_MCMC.shape[0]:
-        print('Applying rejection to generated data...')
-        data_MCMC_with_rejection = np.empty((dataset.shape[0], dataset.shape[1], 0))
+        # print('Applying rejection to generated data...')
+        data_MCMC_with_rejection = np.empty((dataset.dim, dataset.n_t, 0))
         for i in range(data_MCMC.shape[2]):
             data = data_MCMC[:, :, i]
             bool_accept = False
@@ -190,7 +190,7 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, accept_functions=No
                 if np.all(accept_functions[j](data[j, :])):
                     bool_accept = True
             if bool_accept:
-                data_MCMC_with_rejection = np.concatenate((data_MCMC_with_rejection, data), axis=-1)
+                data_MCMC_with_rejection = np.concatenate((data_MCMC_with_rejection, data[:, :, np.newaxis]), axis=-1)
         return data_MCMC_with_rejection
     elif accept_functions is not None and len(accept_functions) != data_MCMC.shape[0]:
         raise Warning('Incoherent number of accept functions, rejection was not applied.')
