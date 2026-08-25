@@ -162,13 +162,13 @@ if __name__ == '__main__':
     delta_r = 2 * np.pi * s_hat_nu / Fac
     f_0 = 1.5
     M_0 = 100
-    n_MC = 60
+    n_MC = 10000  # desired minimum number of additional realizations
     # Parallel processing parameters
     n_cpu = 4
 
     print('Generating additional realizations...')
     generator = Generator(dataset, n_cpu, Fac, delta_r, f_0, M_0, eps, kappa, m)
-    generator.construct_dmaps_basis(plot_eigvals_name='cantilever')
+    generator.construct_dmaps_basis(plot_eigvals_name='sinc')
     total_data_MCMC = generator.generate_realizations(n_MC)
     print(f'Number of additional realizations: {total_data_MCMC.shape[2]}')
 
