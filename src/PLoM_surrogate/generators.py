@@ -185,10 +185,10 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, accept_functions=No
         data_MCMC_with_rejection = np.empty((dataset.dim, dataset.n_t, 0))
         for i in range(data_MCMC.shape[2]):
             data = data_MCMC[:, :, i]
-            bool_accept = False
+            bool_accept = True
             for j in range(data_MCMC.shape[0]):
-                if np.all(accept_functions[j](data[j, :])):
-                    bool_accept = True
+                if np.any(accept_functions[j](data[j, :]) == False):
+                    bool_accept = False
             if bool_accept:
                 data_MCMC_with_rejection = np.concatenate((data_MCMC_with_rejection, data[:, :, np.newaxis]), axis=-1)
         return data_MCMC_with_rejection
@@ -223,7 +223,7 @@ class Generator:
 
         self.mat_g = None
         self.mat_a = None
-        
+
     def construct_dmaps_basis(self, plot_eigvals_name=None):
         """"""
         self.mat_g = construct_dmaps_basis(self.dataset.H_data, self.eps, self.m, self.kappa,
