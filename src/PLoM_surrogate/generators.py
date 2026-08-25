@@ -129,7 +129,7 @@ def generator_Delta_Wiener(nu, N, delta_r):
     return mat_Delta_Wiener
 
 
-def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, reject_functions=None):
+def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, accept_functions=None):
     """
     Generator for additional realizations of a vector random variable from initial sample matrix mat_eta,
     using the reduced diffusion maps basis
@@ -142,7 +142,7 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, reject_functions=No
     delta_r: time-step increment in the ISDE generator
     f_0: damping parameter for the ISDE generator
     M_0: number of burned realizations from the ISDE generator to ensure independent realizations as output
-    reject_functions: list of functions that return True for every value that belongs to a support function
+    accept_functions: list of functions that return True for every value that belongs to a support function
 
     Returns
     -------
@@ -180,20 +180,20 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, reject_functions=No
     X_MCMC = dataset.recover_X(mat_eta_MC)
     data_MCMC = dataset.recover_data(X_MCMC)
 
-    if reject_functions is not None and len(reject_functions) == data_MCMC.shape[0]:
+    if accept_functions is not None and len(accept_functions) == data_MCMC.shape[0]:
         print('Applying rejection to generated data...')
         data_MCMC_with_rejection = np.empty((dataset.shape[0], dataset.shape[1], 0))
         for i in range(data_MCMC.shape[2]):
             data = data_MCMC[:, :, i]
             bool_accept = False
             for j in range(data_MCMC.shape[0]):
-                if np.all(reject_functions[j](data[j, :])):
+                if np.all(accept_functions[j](data[j, :])):
                     bool_accept = True
             if bool_accept:
                 data_MCMC_with_rejection = np.concatenate((data_MCMC_with_rejection, data), axis=-1)
         return data_MCMC_with_rejection
-    elif reject_functions is not None and len(reject_functions) != data_MCMC.shape[0]:
-        raise Warning('Incoherent number of reject functions, rejection was not applied.')
+    elif accept_functions is not None and len(accept_functions) != data_MCMC.shape[0]:
+        raise Warning('Incoherent number of accept functions, rejection was not applied.')
 
     return data_MCMC
 
@@ -201,7 +201,7 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, reject_functions=No
 class Generator:
     def __init__(self, dataset, n_cpu,
                  Fac=20, delta_r=None, f_0=1.5, M_0=100, eps=3., kappa=1, m=30,
-                 reject_functions=None):
+                 accept_functions=None):
         """"""
         self.dataset = dataset
         self.n_cpu = n_cpu
@@ -219,7 +219,7 @@ class Generator:
         self.kappa = kappa
         self.m = m
 
-        self.reject_functions = reject_functions
+        self.accept_functions = accept_functions
 
         self.mat_g = None
         self.mat_a = None
@@ -244,7 +244,7 @@ class Generator:
         """
         pool = Pool(processes=self.n_cpu)
         total_data_MCMC = np.empty((self.dataset.dim, self.dataset.n_t, 0))
-        inputs = ([(self.dataset, self.mat_a, self.mat_g, self.delta_r, self.f_0, self.M_0, self.reject_functions)]
+        inputs = ([(self.dataset, self.mat_a, self.mat_g, self.delta_r, self.f_0, self.M_0, self.accept_functions)]
                   * self.n_cpu)
 
         while total_data_MCMC.shape[-1] < n_MC:
