@@ -7,15 +7,3 @@ def support_R(x):
 
 def support_Rplus(x):
     pass
-
-
-class Support:
-    def __init__(self, supports: list = None):
-        """
-
-
-        Parameters
-        ----------
-        supports
-        """
-        pass

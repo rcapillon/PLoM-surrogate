@@ -129,7 +129,7 @@ def generator_Delta_Wiener(nu, N, delta_r):
     return mat_Delta_Wiener
 
 
-def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=True, reject_functions=None):
+def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, reject_functions=None):
     """
     Generator for additional realizations of a vector random variable from initial sample matrix mat_eta,
     using the reduced diffusion maps basis
@@ -142,8 +142,6 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=
     delta_r: time-step increment in the ISDE generator
     f_0: damping parameter for the ISDE generator
     M_0: number of burned realizations from the ISDE generator to ensure independent realizations as output
-    n_MC: number of additional matrices of realizations concentrated on the same manifold as the training dataset
-    progress_bar: if True, displays a progress bar for the generation of additional realizations
     reject_functions: list of functions that return True for every value that belongs to a support function
 
     Returns
@@ -162,26 +160,22 @@ def generator_ISDE(dataset, mat_a, mat_g, delta_r, f_0, M_0, n_MC, progress_bar=
     mat_Z_proj_prev = np.dot(dataset.H_data, mat_a)
     mat_Y_proj_prev = np.dot(mat_N, mat_a)
 
-    mat_eta_MC = np.zeros((nu, N * n_MC))
+    mat_Z_proj_next = None
+    for j in range(M_0):
+        mat_Z_proj_prev_half = mat_Z_proj_prev + delta_r * mat_Y_proj_prev / 2
+        mat_L_i_half = compute_L(np.dot(mat_Z_proj_prev_half, mat_g.T), dataset.H_data)
+        mat_L_proj_i_half = np.dot(mat_L_i_half, mat_a)
+        mat_Y_proj_next = (((1 - b) / (1 + b)) * mat_Y_proj_prev
+                           + (delta_r / (1 + b)) * mat_L_proj_i_half
+                           + (np.sqrt(f_0) / (1 + b)) * mat_Delta_Wiener_proj_prev)
+        mat_Z_proj_next = mat_Z_proj_prev_half + delta_r * mat_Y_proj_next / 2
 
-    for i in tqdm(range(n_MC), disable=not progress_bar):
-        mat_Z_proj_next = None
-        for j in range(M_0):
-            mat_Z_proj_prev_half = mat_Z_proj_prev + delta_r * mat_Y_proj_prev / 2
-            mat_L_i_half = compute_L(np.dot(mat_Z_proj_prev_half, mat_g.T), dataset.H_data)
-            mat_L_proj_i_half = np.dot(mat_L_i_half, mat_a)
-            mat_Y_proj_next = (((1 - b) / (1 + b)) * mat_Y_proj_prev
-                               + (delta_r / (1 + b)) * mat_L_proj_i_half
-                               + (np.sqrt(f_0) / (1 + b)) * mat_Delta_Wiener_proj_prev)
-            mat_Z_proj_next = mat_Z_proj_prev_half + delta_r * mat_Y_proj_next / 2
+        mat_Z_proj_prev = mat_Z_proj_next
+        mat_Y_proj_prev = mat_Y_proj_next
+        mat_Delta_Wiener_prev = generator_Delta_Wiener(nu, N, delta_r)
+        mat_Delta_Wiener_proj_prev = np.dot(mat_Delta_Wiener_prev, mat_a)
 
-            mat_Z_proj_prev = mat_Z_proj_next
-            mat_Y_proj_prev = mat_Y_proj_next
-            mat_Delta_Wiener_prev = generator_Delta_Wiener(nu, N, delta_r)
-            mat_Delta_Wiener_proj_prev = np.dot(mat_Delta_Wiener_prev, mat_a)
-
-        mat_eta_i = np.dot(mat_Z_proj_next, mat_g.T)
-        mat_eta_MC[:, (i * N):((i + 1) * N)] = mat_eta_i
+    mat_eta_MC = np.dot(mat_Z_proj_next, mat_g.T)
 
     X_MCMC = dataset.recover_X(mat_eta_MC)
     data_MCMC = dataset.recover_data(X_MCMC)
@@ -237,14 +231,25 @@ class Generator:
         self.mat_a = build_mat_a(self.mat_g)
 
     def generate_realizations(self, n_MC):
-        """"""
+        """
+
+        Parameters
+        ----------
+        n_MC: number of desired additional realizations
+
+        Returns
+        -------
+        total_data_MCMC: np.array, additional realizations
+
+        """
         pool = Pool(processes=self.n_cpu)
         total_data_MCMC = np.empty((self.dataset.dim, self.dataset.n_t, 0))
-        progress_bar = True
-        inputs = ([(self.dataset, self.mat_a, self.mat_g, self.delta_r, self.f_0, self.M_0, n_MC, progress_bar)]
+        inputs = ([(self.dataset, self.mat_a, self.mat_g, self.delta_r, self.f_0, self.M_0, self.reject_functions)]
                   * self.n_cpu)
 
-        for data_MCMC in pool.starmap(generator_ISDE, inputs):
-            total_data_MCMC = np.concatenate((total_data_MCMC, data_MCMC), axis=-1)
+        while total_data_MCMC.shape[-1] < n_MC:
+            for data_MCMC in pool.starmap(generator_ISDE, inputs):
+                total_data_MCMC = np.concatenate((total_data_MCMC, data_MCMC), axis=-1)
+            print(f'Number of generated additional realizations: {total_data_MCMC.shape[-1]}')
 
         return total_data_MCMC
