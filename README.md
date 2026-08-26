@@ -10,6 +10,12 @@ concentrated and generating additional data points that lie on the learned manif
 model for a specific time-step (or all time-steps if one desires), computing new samples conditionally to a choice
 of specific control parameters, computing the conditional mean, covariance or confidence interval.
 
+## New features
+Now, generated additional realizations can be bound to a specific multi-dimensional support by means of an optional 
+list of accept functions provided to the generator. Generated realizations that do not lie inside the defined support
+will be rejected and more realizations will be generated until enough are accepted.
+This will be documented in the 'Usage' section soon.
+
 ## Installation
 First, clone the repository in the folder of your choice using:
 ```
